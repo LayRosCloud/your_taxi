@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 004-create-cars-table
+      changes:
+        - createTable:
+            tableName: cars
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    references: users(id) ON DELETE CASCADE ON UPDATE CASCADE
+                    foreignKeyName: fk_users_cars_user_id
+              - column:
+                  name: number
+                  type: VARCHAR(15)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: color
+                  type: VARCHAR(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: mark
+                  type: VARCHAR(40)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: BIGINT
+                  constraints:
+                    nullable: false

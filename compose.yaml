@@ -1,0 +1,11 @@
+services:
+  pg_taxi:
+    image: "postgis/postgis:15-3.4"
+    container_name: pg_taxi
+    environment:
+      - "POSTGRES_DB=pg_taxi"
+      - "POSTGRES_PASSWORD=admin"
+      - "POSTGRES_USER=admin"
+      - "TZ=UTC"
+    ports:
+      - 5090:5432

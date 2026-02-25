@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 006-create-points-table
+      changes:
+        - createTable:
+            tableName: points
+            columns:
+              - column:
+                  name: order_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    references: orders(id) ON DELETE CASCADE ON UPDATE CASCADE
+                    foreignKeyName: fk_points_orders
+              - column:
+                  name: index
+                  type: INT
+                  defaultValue: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: point
+                  type: GEOMETRY
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            columnNames: "order_id, index"
+            constraintName: pk_points
+            tableName: points
+            validate: true
+
+
