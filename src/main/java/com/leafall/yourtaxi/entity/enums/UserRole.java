@@ -1,7 +1,15 @@
 package com.leafall.yourtaxi.entity.enums;
 
-public enum UserRole {
+import org.jspecify.annotations.Nullable;
+import org.springframework.security.core.GrantedAuthority;
+
+public enum UserRole implements GrantedAuthority {
     USER,
     EMPLOYEE,
-    DISPATCHER
+    DISPATCHER;
+
+    @Override
+    public @Nullable String getAuthority() {
+        return this.name();
+    }
 }

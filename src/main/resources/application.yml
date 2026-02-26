@@ -20,3 +20,10 @@ spring:
     change-log: classpath:db/changelog/master.yml
 server:
   port: ${SERVER_PORT}
+jwt:
+  access:
+    secretKey: YmFzZTY0ZW5jb2Rlcl9HaG91bEVwdGExMjM0MTJkc2Z2c2Q0M2diZmRz
+    ttlMinutes: 60
+  refresh:
+    secretKey: YmFzZTY0ZW5jb2Rlcl9HaG91bEVwdGExMjM0MTJkc2Z2c2Q0M2diZmRz
+    ttlMinutes: 120
