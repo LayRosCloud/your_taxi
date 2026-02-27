@@ -91,6 +91,14 @@ public class TokenService {
                 .build();
     }
 
+    public void logout(String token) {
+        var entity = tokenRepository.findByRefreshToken(token)
+                .orElseThrow(() -> new NotFoundException("token.error.not-found"));
+
+        validateRefreshToken(entity.getRefreshToken());
+        revokeToken(entity.getId());
+    }
+
     public void validateAccessToken(String token) {
         validateToken(secretAccessKey, token);
     }
@@ -117,6 +125,7 @@ public class TokenService {
                 .setIssuedAt(new Date(getCurrentTimeFromUTC()))
                 .setAudience("com.example.your_taxi")
                 .addClaims(map)
+                .setId(UUID.randomUUID().toString())
                 .signWith(secretKey)
                 .compact();
     }

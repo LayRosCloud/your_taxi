@@ -1,9 +1,17 @@
 
 spring:
-  jpa:
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
-      hibernate:
-        dialect: org.hibernate.spatial.dialect.postgis.PostgisDialect
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
   application:
     name: your-taxi
   datasource:
@@ -20,6 +28,7 @@ spring:
     change-log: classpath:db/changelog/master.yml
 server:
   port: ${SERVER_PORT}
+  host: ${SERVER_HOST}
 jwt:
   access:
     secretKey: YmFzZTY0ZW5jb2Rlcl9HaG91bEVwdGExMjM0MTJkc2Z2c2Q0M2diZmRz

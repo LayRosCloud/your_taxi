@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 007-create-codes-table
+      changes:
+        - createTable:
+            tableName: codes
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    references: users(id) ON DELETE CASCADE ON UPDATE CASCADE
+                    foreignKeyName: fk_users_codes
+              - column:
+                  name: code
+                  type: VARCHAR(36)
+                  constraints:
+                    nullable: false

@@ -20,7 +20,7 @@ public class UserEntity implements CreatedAtTimestampAware, UpdatedAtTimestampAw
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "fullName", nullable = false)
+    @Column(name = "fullname", nullable = false)
     private String fullName;
 
     @Column(name = "email", nullable = false, unique = true)
@@ -46,6 +46,6 @@ public class UserEntity implements CreatedAtTimestampAware, UpdatedAtTimestampAw
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private UserInfoEntity info;
 }
