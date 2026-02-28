@@ -1,17 +1,14 @@
 databaseChangeLog:
   - changeSet:
       author: betrayal
-      id: 005-create-orders-table
+      id: 005-create-trips-table
       changes:
-        - sql:
-            "CREATE TYPE orders_status_enum AS ENUM ('NEW', 'ACCEPT', 'EXPECTATION', 'IN_PROCESS', 'COMPLETED', 'REJECTED')"
         - createTable:
-            tableName: orders
+            tableName: trips
             columns:
               - column:
                   name: id
                   type: UUID
-                  defaultValueComputed: gen_random_uuid()
                   constraints:
                     nullable: false
                     primaryKey: true
@@ -21,19 +18,13 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     references: users(id) ON DELETE CASCADE ON UPDATE CASCADE
-                    foreignKeyName: fk_users_orders_user_id
+                    foreignKeyName: fk_trips_users
               - column:
-                  name: executor_id
+                  name: car_id
                   type: BIGINT
                   constraints:
-                    nullable: false
                     references: cars(id) ON DELETE CASCADE ON UPDATE CASCADE
-                    foreignKeyName: fk_cars_orders_executor
-              - column:
-                  name: status
-                  type: orders_status_enum
-                  defaultValue: 'NEW'
-                  constraints:
+                    foreignKeyName: fk_cars_trips
                     nullable: false
               - column:
                   name: created_at
@@ -41,8 +32,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: updated_at
+                  name: end_at
                   type: BIGINT
                   constraints:
-                    nullable: false
-
+                    nullable: true

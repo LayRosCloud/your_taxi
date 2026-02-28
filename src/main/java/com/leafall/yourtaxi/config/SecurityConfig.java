@@ -1,10 +1,14 @@
 package com.leafall.yourtaxi.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.leafall.yourtaxi.dto.ErrorDto;
 import com.leafall.yourtaxi.entity.enums.UserRole;
 import com.leafall.yourtaxi.middleware.JwtFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,6 +16,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.io.IOException;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -23,7 +30,7 @@ public class SecurityConfig {
 
     private static final String[] USER_LIST_URLS = {"/v1/client/**"};
     private static final String[] WORKER_LIST_URLS = {"/v1/app/**"};
-    private static final String[] DISPATCHER_LIST_URLS = {"/v1/admin/**"};
+    private static final String[] DISPATCHER_LIST_URLS = {"/v1/employees/**"};
     private final AuthenticationProvider provider;
     private final JwtFilter jwtFilter;
 
@@ -37,9 +44,25 @@ public class SecurityConfig {
                         .requestMatchers(DISPATCHER_LIST_URLS).hasAuthority(UserRole.DISPATCHER.name())
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(ex ->
+                        ex.authenticationEntryPoint((request, response, authException) ->
+                                sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Unauthorized")
+                            )
+                            .accessDeniedHandler((request, response, accessDeniedException) ->
+                                sendErrorResponse(response, HttpStatus.FORBIDDEN, "Forbidden")
+                            )
+                )
                 .authenticationProvider(provider)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+    private void sendErrorResponse(HttpServletResponse response, HttpStatus status, String message) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
+        ErrorDto errorDto = new ErrorDto(status.value(), List.of(message));
+        String jsonResponse = new ObjectMapper().writeValueAsString(errorDto);
+        response.getWriter().print(jsonResponse);
+    }
 }

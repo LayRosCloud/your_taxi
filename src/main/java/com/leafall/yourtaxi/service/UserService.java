@@ -5,8 +5,9 @@ import com.leafall.yourtaxi.dto.user.*;
 import com.leafall.yourtaxi.entity.CodeEntity;
 import com.leafall.yourtaxi.entity.UserEntity;
 import com.leafall.yourtaxi.entity.enums.UserRole;
-import com.leafall.yourtaxi.exceptions.BadRequestException;
-import com.leafall.yourtaxi.exceptions.NotFoundException;
+import com.leafall.yourtaxi.exception.BadRequestException;
+import com.leafall.yourtaxi.exception.ConflictException;
+import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.mapper.UserMapper;
 import com.leafall.yourtaxi.repository.CodeRepository;
 import com.leafall.yourtaxi.repository.UserRepository;
@@ -59,7 +60,7 @@ public class UserService {
         if (userOptional.isPresent()) {
             user = userOptional.get();
             if (user.getIsActive() && user.getDeletedAt() == null) {
-                throw new BadRequestException("user.error.has-email");
+                throw new ConflictException("user.error.has-email");
             }
         }
         if (user != null) {
@@ -67,10 +68,8 @@ public class UserService {
             user.setPassword(encodingService.encode(dto.getPassword()));
             user.setFullName(dto.getFullName());
         } else {
-            user = new UserEntity();
-            user.setFullName(dto.getFullName());
+            user = mapper.mapToEntity(dto);
             user.setPassword(encodingService.encode(dto.getPassword()));
-            user.setEmail(dto.getEmail());
             user.setRole(UserRole.USER);
             user.setIsActive(false);
         }

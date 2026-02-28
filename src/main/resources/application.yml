@@ -1,5 +1,13 @@
 
 spring:
+  springdoc:
+    webjars:
+      prefix: ""
+    api-docs:
+      enabled: true
+      path: /v3/api-docs
+    swagger-ui:
+      enabled: true
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}

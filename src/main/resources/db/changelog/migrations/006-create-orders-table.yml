@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 005-create-orders-table
+      changes:
+        - sql:
+            "CREATE TYPE orders_status_enum AS ENUM ('NEW', 'ACCEPT', 'EXPECTATION', 'IN_PROCESS', 'COMPLETED', 'REJECTED')"
+        - createTable:
+            tableName: orders
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    references: users(id) ON DELETE CASCADE ON UPDATE CASCADE
+                    foreignKeyName: fk_users_orders_user_id
+              - column:
+                  name: executor_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    references: trips(id) ON DELETE CASCADE ON UPDATE CASCADE
+                    foreignKeyName: fk_trips_orders_executor
+              - column:
+                  name: status
+                  type: orders_status_enum
+                  defaultValue: 'NEW'
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+

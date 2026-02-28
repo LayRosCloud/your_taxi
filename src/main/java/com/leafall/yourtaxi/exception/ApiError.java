@@ -1,4 +1,4 @@
-package com.leafall.yourtaxi.exceptions;
+package com.leafall.yourtaxi.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

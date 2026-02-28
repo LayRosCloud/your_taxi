@@ -1,4 +1,4 @@
-package com.leafall.yourtaxi.exceptions;
+package com.leafall.yourtaxi.exception;
 
 public class BadRequestException extends ApiError {
 

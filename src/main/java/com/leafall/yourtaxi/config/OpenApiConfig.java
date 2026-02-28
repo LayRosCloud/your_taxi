@@ -1,40 +1,38 @@
 package com.leafall.yourtaxi.config;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
-import io.swagger.v3.oas.models.servers.Server;
-import io.swagger.v3.oas.models.servers.ServerVariable;
-import io.swagger.v3.oas.models.servers.ServerVariables;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
+import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.context.annotation.Configuration;
 
+@OpenAPIDefinition(
+        info =@Info(
+                title = "Your Taxi API",
+                version = "1.0.0",
+                contact = @Contact(
+                        name = "Leafall", email = "vogistv@gmail.com", url = "https://protobin.com/"
+                ),
+                license = @License(
+                        name = "Apache 2.0", url = "https://www.apache.org/licenses/LICENSE-2.0"
+                )
+        ),
+        servers = @Server(
+                url = "/",
+                description = "All servers"
+        )
+)
 @SecurityScheme(
-        name = "bearerAuth",
+        name = "Bearer",
         type = SecuritySchemeType.HTTP,
+        bearerFormat = "JWT",
         scheme = "bearer",
-        bearerFormat = "JWT"
+        in = SecuritySchemeIn.HEADER
 )
 @Configuration
 public class OpenApiConfig {
-    @Value("${server.host}")
-    private String serverHost;
-
-    @Bean
-    public OpenAPI openApi() {
-        var server = new Server()
-                .url("/")
-                .variables(
-                        new ServerVariables()
-                                .addServerVariable("host", new ServerVariable()
-                                        ._default(serverHost)
-                                )
-                );
-        var security = new SecurityRequirement().addList("Authorization");
-        return new OpenAPI()
-                .addSecurityItem(security)
-                .addServersItem(server);
-    }
 }

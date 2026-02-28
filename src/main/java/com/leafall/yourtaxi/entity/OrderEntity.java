@@ -26,7 +26,7 @@ public class OrderEntity implements CreatedAtTimestampAware {
 
     @JoinColumn(name = "executor_id", nullable = false)
     @ManyToOne(fetch = FetchType.EAGER)
-    private CarEntity executor;
+    private TripEntity executor;
 
     @Column(name = "status", nullable = false, columnDefinition = "orders_status_enum")
     @Enumerated(EnumType.STRING)

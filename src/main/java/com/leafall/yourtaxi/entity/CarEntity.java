@@ -34,8 +34,4 @@ public class CarEntity implements CreatedAtTimestampAware {
 
     @Column(name = "deleted_at")
     private Long deletedAt;
-
-    @JoinColumn(name = "user_id", nullable = false)
-    @ManyToOne(fetch = FetchType.EAGER)
-    private UserEntity user;
 }

@@ -13,13 +13,6 @@ databaseChangeLog:
                     nullable: false
                     primaryKey: true
               - column:
-                  name: user_id
-                  type: UUID
-                  constraints:
-                    nullable: false
-                    references: users(id) ON DELETE CASCADE ON UPDATE CASCADE
-                    foreignKeyName: fk_users_cars_user_id
-              - column:
                   name: number
                   type: VARCHAR(15)
                   constraints:

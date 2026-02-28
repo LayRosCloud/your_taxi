@@ -2,19 +2,17 @@ package com.leafall.yourtaxi.service;
 
 import com.leafall.yourtaxi.dto.token.TokenHolder;
 import com.leafall.yourtaxi.entity.TokenEntity;
-import com.leafall.yourtaxi.exceptions.ForbiddenException;
-import com.leafall.yourtaxi.exceptions.NotFoundException;
+import com.leafall.yourtaxi.exception.ForbiddenException;
+import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.repository.TokenRepository;
 import com.leafall.yourtaxi.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.apache.coyote.RequestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.util.*;

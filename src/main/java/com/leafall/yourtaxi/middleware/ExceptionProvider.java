@@ -1,7 +1,7 @@
 package com.leafall.yourtaxi.middleware;
 
 import com.leafall.yourtaxi.dto.ErrorDto;
-import com.leafall.yourtaxi.exceptions.ApiError;
+import com.leafall.yourtaxi.exception.ApiError;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
