@@ -8,7 +8,6 @@ import com.leafall.yourtaxi.entity.enums.UserRole;
 import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.mapper.UserMapper;
-import com.leafall.yourtaxi.repository.UserInfoRepository;
 import com.leafall.yourtaxi.repository.UserRepository;
 import com.leafall.yourtaxi.utils.TimeUtils;
 import com.leafall.yourtaxi.utils.pagination.PaginationCursor;
@@ -24,7 +23,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class EmployeeService {
     private final UserRepository userRepository;
-    private final UserInfoRepository userInfoRepository;
     private final EncodingService encodingService;
     private final UserMapper mapper;
 

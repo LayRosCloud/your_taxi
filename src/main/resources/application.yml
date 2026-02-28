@@ -1,3 +1,8 @@
+logging:
+  level:
+    org.springframework.data.redis: DEBUG
+    io.lettuce.core: DEBUG # Если используете Lettuce
+    redis.clients.jedis: DEBUG # Если используете Jedis
 
 spring:
   springdoc:
@@ -34,6 +39,12 @@ spring:
     password: ${DB_PASS}
     driver-class-name: org.postgresql.Driver
     change-log: classpath:db/changelog/master.yml
+  data:
+    redis:
+      host: localhost
+      database: 0
+      password: admin
+      port: 6379
 server:
   port: ${SERVER_PORT}
   host: ${SERVER_HOST}
@@ -44,3 +55,8 @@ jwt:
   refresh:
     secretKey: YmFzZTY0ZW5jb2Rlcl9HaG91bEVwdGExMjM0MTJkc2Z2c2Q0M2diZmRz
     ttlMinutes: 120
+
+websocket:
+  ports: ${WEBSOCKET_PORTS}
+frontend:
+  url: http://localhost:5173

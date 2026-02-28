@@ -9,3 +9,4 @@ MAIL_HOST: smtp.gmail.com
 MAIL_PORT: 587
 MAIL_USERNAME: vogistv@gmail.com
 MAIL_PASSWORD: dtlzyhnlxekwledl
+WEBSOCKET_PORTS: "*"

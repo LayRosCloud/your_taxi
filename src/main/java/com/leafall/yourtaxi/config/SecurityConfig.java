@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -26,7 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String[] PUBLIC_LIST_URLS = {"/v1/users/signin", "/v1/users/signup","/v1/users/verify", "/v1/users/tokens/refresh", "/v3/api-docs/**","/swagger-ui/**","/swagger-ui"};
+    private static final String[] PUBLIC_LIST_URLS = {"/v1/users/signin", "/connect", "/v1/users/signup","/v1/users/verify", "/v1/users/tokens/refresh", "/v3/api-docs/**","/swagger-ui/**","/swagger-ui"};
 
     private static final String[] USER_LIST_URLS = {"/v1/client/**"};
     private static final String[] WORKER_LIST_URLS = {"/v1/app/**"};
@@ -43,6 +44,9 @@ public class SecurityConfig {
                         .requestMatchers(WORKER_LIST_URLS).hasAuthority(UserRole.EMPLOYEE.name())
                         .requestMatchers(DISPATCHER_LIST_URLS).hasAuthority(UserRole.DISPATCHER.name())
                         .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .exceptionHandling(ex ->
                         ex.authenticationEntryPoint((request, response, authException) ->

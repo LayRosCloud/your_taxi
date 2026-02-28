@@ -9,3 +9,21 @@ services:
       - "TZ=UTC"
     ports:
       - 5090:5432
+  redis_taxi:
+    image: redis:7-alpine
+    container_name: redis_taxi
+    command: ["redis-server", "--requirepass", "admin"]
+    ports:
+      - "6379:6379"
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+      REDIS_HOSTS: redis_taxi
+      REDIS_HOST: redis_taxi
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: admin
+      HTTP_USER: root
+      HTTP_PASSWORD: root
+    ports:
+      - 8081:8081
