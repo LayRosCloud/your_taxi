@@ -1,29 +1,74 @@
 services:
+  taxi:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    restart: always
+    environment:
+      - "DB_PASS=${DB_PASS}"
+      - "DB_USER=${DB_USER}"
+      - "DB_NAME=${DB_NAME}"
+      - "DB_PORT=${DB_PORT}"
+      - "DB_HOST=${DB_HOST}"
+      - "MAIL_HOST=${MAIL_HOST}"
+      - "MAIL_PORT=${MAIL_PORT}"
+      - "MAIL_USERNAME=${MAIL_USERNAME}"
+      - "MAIL_PASSWORD=${MAIL_PASSWORD}"
+      - "WEBSOCKET_PORTS=${WEBSOCKET_PORTS}"
+      - "REDIS_HOST=${REDIS_HOST}"
+      - "REDIS_PASS=${REDIS_PASS}"
+      - "REDIS_DB=${REDIS_DB}"
+      - "REDIS_PORT=${REDIS_PORT}"
+      - "SPRING_PROFILES_ACTIVE=${REDIS_PORT}"
+      - "SERVER_PORT=${SERVER_PORT}"
+      - "SERVER_HOST=${SERVER_HOST}"
+    depends_on:
+      redis_taxi:
+        condition: service_healthy
+      pg_taxi:
+        condition: service_started
+    networks:
+      - app_network
+    ports:
+      - ${EXPOSE_SERVER_PORT}:${SERVER_PORT}
   pg_taxi:
     image: "postgis/postgis:15-3.4"
     container_name: pg_taxi
+    restart: always
     environment:
-      - "POSTGRES_DB=pg_taxi"
-      - "POSTGRES_PASSWORD=admin"
-      - "POSTGRES_USER=admin"
+      - "POSTGRES_DB=${DB_NAME}"
+      - "POSTGRES_PASSWORD=${DB_PASS}"
+      - "POSTGRES_USER=${DB_USER}"
       - "TZ=UTC"
-    ports:
-      - 5090:5432
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app_network
   redis_taxi:
     image: redis:7-alpine
     container_name: redis_taxi
-    command: ["redis-server", "--requirepass", "admin"]
-    ports:
-      - "6379:6379"
-  redis-commander:
-    image: rediscommander/redis-commander:latest
+    command: ["redis-server", "--requirepass", "${REDIS_PASS}"]
     restart: always
-    environment:
-      REDIS_HOSTS: redis_taxi
-      REDIS_HOST: redis_taxi
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: admin
-      HTTP_USER: root
-      HTTP_PASSWORD: root
-    ports:
-      - 8081:8081
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASS}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pg_redis:/redis
+    networks:
+      - app_network
+
+volumes:
+  pg_data:
+  pg_redis:
+
+networks:
+  app_network:
+    driver: bridge

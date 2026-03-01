@@ -14,13 +14,23 @@ import org.springframework.data.redis.support.collections.RedisProperties;
 @Configuration
 @RequiredArgsConstructor
 public class RedisConfig {
+
+    @Value("${spring.data.redis.host}")
+    private String host;
+    @Value("${spring.data.redis.port}")
+    private Integer port;
+    @Value("${spring.data.redis.password}")
+    private String password;
+    @Value("${spring.data.redis.database}")
+    private Integer database;
+
     @Bean
     JedisConnectionFactory jedisConnectionFactory() {
         var factory = new JedisConnectionFactory();
-        factory.setHostName("localhost");
-        factory.setPort(6379);
-        factory.setPassword("admin");
-        factory.setDatabase(0);
+        factory.setHostName(host);
+        factory.setPort(port);
+        factory.setPassword(password);
+        factory.setDatabase(database);
         return factory;
     }
     @Bean

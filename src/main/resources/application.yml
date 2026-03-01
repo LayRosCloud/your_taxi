@@ -41,10 +41,10 @@ spring:
     change-log: classpath:db/changelog/master.yml
   data:
     redis:
-      host: localhost
-      database: 0
-      password: admin
-      port: 6379
+      host: ${REDIS_HOST}
+      database: ${REDIS_DB}
+      password: ${REDIS_PASS}
+      port: ${REDIS_PORT}
 server:
   port: ${SERVER_PORT}
   host: ${SERVER_HOST}
