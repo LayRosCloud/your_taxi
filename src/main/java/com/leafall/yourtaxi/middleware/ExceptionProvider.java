@@ -8,6 +8,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -28,10 +29,20 @@ public class ExceptionProvider {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorDto> handleException(NoResourceFoundException exception, Locale locale) {
         log.error(exception.getMessage(), exception);
-        var message = messageSource.getMessage("error.page.not-found", new Object[]{}, locale);
+        var message = messageSource.getMessage("base.error.not-found", new Object[]{}, locale);
         return new ResponseEntity<>(
                 new ErrorDto(404, List.of(message)),
                 HttpStatus.NOT_FOUND
+        );
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorDto> handleException(AuthorizationDeniedException exception, Locale locale) {
+        log.error(exception.getMessage(), exception);
+        var message = messageSource.getMessage("base.error.forbidden", new Object[]{}, locale);
+        return new ResponseEntity<>(
+                new ErrorDto(403, List.of(message)),
+                HttpStatus.FORBIDDEN
         );
     }
 

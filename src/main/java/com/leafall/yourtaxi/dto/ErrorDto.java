@@ -13,7 +13,9 @@ public class ErrorDto {
     @Schema(title = "Статус", description = "Статус ответа", example = "401")
     @NotNull
     private Integer status;
-    @Schema(title = "Ошибки", description = "Все ошибки")
+    @Schema(title = "Ошибки", description = "Все ошибки",
+            example = "[\"Unauthorized\",\"Bad Request\",\"Forbidden\"]"
+            )
     @NotNull
     private List<String> errors;
 

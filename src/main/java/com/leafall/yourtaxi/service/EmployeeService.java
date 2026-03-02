@@ -87,6 +87,9 @@ public class EmployeeService {
     public void deleteHard(UUID id) {
         var toSave = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("user.error.not-found"));
+        if (toSave.getDeletedAt() == null) {
+            throw new BadRequestException("user.error.hard-delete-error");
+        }
         userRepository.delete(toSave);
     }
 }

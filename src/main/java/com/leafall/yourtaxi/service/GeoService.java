@@ -19,7 +19,7 @@ public class GeoService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public List<Map<String, Object>> getNearbyDrivers(Double lon, Double lat, Double radius) {
+    public List<CoordinateResponseDto> getNearbyDrivers(Double lon, Double lat, Double radius) {
         var circle = new Circle(new Point(lon, lat), new Distance(radius, Metrics.KILOMETERS));
         var results =
                 redisTemplate.opsForGeo().search(GEO_KEY, circle);
@@ -29,19 +29,23 @@ public class GeoService {
         }
 
         var driversIds = results.getContent().stream().map(result -> result.getContent().getName()).toList();
-        System.out.println(driversIds);
         var keys = driversIds.stream().map(id -> KEY + id).toList();
-        System.out.println(keys);
         var rawValues = redisTemplate.opsForValue().multiGet(keys);
 
-        List<Map<String, Object>> activeDrivers = new ArrayList<>();
+        List<CoordinateResponseDto> activeDrivers = new ArrayList<>();
 
         for (int i = 0; i < keys.size(); i++) {
             Object value = rawValues.get(i);
 
             if (value != null) {
                 Map<String, Object> driverData = (Map<String, Object>) value;
-                activeDrivers.add(driverData);
+                var dto = new CoordinateResponseDto();
+                dto.setId(UUID.fromString(driverData.get("id").toString()));
+                dto.setLongitude(Double.parseDouble(driverData.get("lat").toString()));
+                dto.setLatitude(Double.parseDouble(driverData.get("lon").toString()));
+                dto.setAngle(Double.parseDouble(driverData.get("ang").toString()));
+
+                activeDrivers.add(dto);
             }
         }
         return activeDrivers;

@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 011-add-autoincrement-id
+      changes:
+        - dropColumn:
+            tableName: cars
+            columnName: deleted_at
+        - addColumn:
+            tableName: cars
+            columns:
+              - column:
+                  name: deleted_at
+                  type: BIGINT

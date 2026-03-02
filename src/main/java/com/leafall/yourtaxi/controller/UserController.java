@@ -5,6 +5,7 @@ import com.leafall.yourtaxi.dto.user.*;
 import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.exception.annotation.*;
 import com.leafall.yourtaxi.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,11 +19,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Users")
+@Tag(name = "Users", description = "Пользователи")
 public class UserController {
     private final UserService service;
 
     @GetMapping("/v1/users/current")
+    @Operation(summary = "Получить информацию о текущем юзере", description = "Получаете информацию из JWT токена")
     @ApiResponseUnauthorized
     @ApiResponse(responseCode = "200", description = "Получена информация о текущем пользователе")
     public ResponseEntity<UserResponseDto> getCurrentUser() {
@@ -30,6 +32,10 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
     @PostMapping("/v1/users/signin")
+    @Operation(
+            summary = "Авторизация",
+            description = "Авторизация аккаунта через email, password, если акк не активирован, авторизация не удастся"
+    )
     @ApiResponseBadRequest
     @ApiResponseNotFound
     @ApiResponse(responseCode = "200", description = "Успешная авторизация")
@@ -39,6 +45,10 @@ public class UserController {
     }
 
     @PostMapping("/v1/users/signup")
+    @Operation(
+            summary = "Регистрация",
+            description = "Если акк удален или не активирован, ошибка не выдастся"
+    )
     @ApiResponseBadRequest
     @ApiResponseConflict
     @ApiResponse(responseCode = "201", description = "Успешная регистрация")
@@ -49,6 +59,10 @@ public class UserController {
     }
 
     @PostMapping("/v1/users/verify")
+    @Operation(
+            summary = "Верификация аккаунта",
+            description = "Подтверждение почты с письма на почты"
+    )
     @ApiResponseBadRequest
     @ApiResponseNotFound
     @ApiResponse(responseCode = "200", description = "Успешная верификация")
@@ -58,6 +72,10 @@ public class UserController {
     }
 
     @PostMapping("/v1/users/tokens/refresh")
+    @Operation(
+            summary = "Обновление сессии",
+            description = "Дает новую пару JWT токенов"
+    )
     @ApiResponseNotFound
     @ApiResponse(responseCode = "200", description = "Успешное обновление токена")
     public ResponseEntity<TokenHolder> refresh(@RequestBody @Valid RefreshDto dto) {
@@ -66,6 +84,10 @@ public class UserController {
     }
 
     @PostMapping("/v1/users/logout")
+    @Operation(
+            summary = "Выход из аккаунта",
+            description = "Удаляет пару токенов Refresh Access токенов"
+    )
     @ApiResponseBadRequest
     @ApiResponseNotFound
     @ApiResponseForbidden

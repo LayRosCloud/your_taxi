@@ -1,7 +1,13 @@
 package com.leafall.yourtaxi.controller;
 
+import com.leafall.yourtaxi.dto.coordinates.CoordinateResponseDto;
 import com.leafall.yourtaxi.dto.coordinates.CoordinateSaveDto;
+import com.leafall.yourtaxi.exception.annotation.ApiResponseUnauthorized;
 import com.leafall.yourtaxi.service.GeoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +26,24 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @MessageMapping("/v1/coords")
+@Tag(name = "Coords", description = "Текущее местоположение")
 public class GeoController {
     private final GeoService geoService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @GetMapping("/v1/coords")
-    public ResponseEntity<List<Map<String, Object>>> getNearbyCoords(@RequestParam Double lon, @RequestParam Double lat, @RequestParam Double radius) {
+    @Operation(
+            summary = "Актуальное положение таксистов",
+            description = "Получить положение таксистов в определенном радиусе"
+    )
+    @ApiResponse(description = "Координаты получены", responseCode = "200")
+    @ApiResponseUnauthorized
+    public ResponseEntity<List<CoordinateResponseDto>> getNearbyCoords(@RequestParam @NotNull Double lon,
+                                                                       @RequestParam @NotNull Double lat,
+                                                                       @RequestParam Double radius) {
+        if (radius == null) {
+            radius = 1000d;
+        }
         var geos = geoService.getNearbyDrivers(lon, lat, radius);
         return new ResponseEntity<>(geos, HttpStatus.OK);
     }

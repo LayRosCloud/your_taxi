@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 010-add-autoincrement-id
+      changes:
+        - sql:
+            sql: CREATE SEQUENCE cars_id_seq START WITH 1 INCREMENT BY 1;
+        - sql:
+            sql: ALTER TABLE cars ALTER COLUMN id SET DEFAULT nextval('cars_id_seq');
+        - sql:
+            sql: SELECT setval('cars_id_seq', (SELECT MAX(id) FROM cars));

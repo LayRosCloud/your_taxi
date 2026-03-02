@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 008-create-column-price
+      changes:
+        - addColumn:
+            tableName: 'orders'
+            columns:
+              - column:
+                  name: price
+                  type: DOUBLE
+                  constraints:
+                    nullable: false

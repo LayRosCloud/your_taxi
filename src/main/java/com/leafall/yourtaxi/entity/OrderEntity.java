@@ -33,6 +33,9 @@ public class OrderEntity implements CreatedAtTimestampAware {
     @JdbcType(PostgreSQLEnumJdbcType.class)
     private OrderStatus status;
 
+    @Column(name = "price", nullable = false)
+    private Double price;
+
     @Column(name = "created_at", nullable = false)
     private Long createdAt;
 

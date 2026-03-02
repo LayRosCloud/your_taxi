@@ -7,6 +7,7 @@ import com.leafall.yourtaxi.entity.listener.TimestampListener;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
 
 import java.util.UUID;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Table(name = "cars")
 @Data
 @EntityListeners({TimestampListener.class})
+@SQLRestriction("deleted_at IS NULL")
 public class CarEntity implements CreatedAtTimestampAware {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
