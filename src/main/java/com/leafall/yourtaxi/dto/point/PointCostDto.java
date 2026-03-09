@@ -2,13 +2,12 @@ package com.leafall.yourtaxi.dto.point;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 @Data
-public class PointCreateDto {
+public class PointCostDto {
     @NotNull
-    private String name;
+    private Double price;
     @NotNull
-    private Double longitude;
-    @NotNull
-    private Double latitude;
+    private Double durationInSeconds;
 }

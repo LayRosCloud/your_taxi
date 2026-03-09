@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 012-change-executor-id
+      changes:
+        - sql:
+            "ALTER TABLE orders ALTER COLUMN executor_id DROP NOT NULL;"

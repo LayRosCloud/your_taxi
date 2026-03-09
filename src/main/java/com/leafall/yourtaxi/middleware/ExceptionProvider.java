@@ -2,8 +2,10 @@ package com.leafall.yourtaxi.middleware;
 
 import com.leafall.yourtaxi.dto.ErrorDto;
 import com.leafall.yourtaxi.exception.ApiError;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -28,7 +30,7 @@ public class ExceptionProvider {
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorDto> handleException(NoResourceFoundException exception, Locale locale) {
-        log.error(exception.getMessage(), exception);
+        log.warn(exception.getMessage(), exception);
         var message = messageSource.getMessage("base.error.not-found", new Object[]{}, locale);
         return new ResponseEntity<>(
                 new ErrorDto(404, List.of(message)),
@@ -38,7 +40,7 @@ public class ExceptionProvider {
 
     @ExceptionHandler(AuthorizationDeniedException.class)
     public ResponseEntity<ErrorDto> handleException(AuthorizationDeniedException exception, Locale locale) {
-        log.error(exception.getMessage(), exception);
+        log.warn(exception.getMessage(), exception);
         var message = messageSource.getMessage("base.error.forbidden", new Object[]{}, locale);
         return new ResponseEntity<>(
                 new ErrorDto(403, List.of(message)),
@@ -65,8 +67,10 @@ public class ExceptionProvider {
 
     @ExceptionHandler(ApiError.class)
     public ResponseEntity<ErrorDto> handleException(ApiError exception, Locale locale) {
-        log.error(exception.getMessage(), exception);
         var message = messageSource.getMessage(exception.getMessage(), new Object[]{}, locale);
+
+        var logId = MDC.get(LoggerMiddleware.HEADER_CORRELATION_LOG_ID);
+        log.warn("[{}] {}", logId, message);
         return new ResponseEntity<>(
                 new ErrorDto(exception.getStatus(), List.of(message)),
                 HttpStatusCode.valueOf(exception.getStatus())
@@ -75,7 +79,8 @@ public class ExceptionProvider {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDto> handleException(Exception exception, Locale locale) {
-        log.error(exception.getMessage(), exception);
+        var logId = MDC.get(LoggerMiddleware.HEADER_CORRELATION_LOG_ID);
+        log.error("[{}] {}",logId, exception.getMessage(), exception);
         var message = messageSource.getMessage("base.error.internal-server-error", new Object[]{}, locale);
         return new ResponseEntity<>(
                 new ErrorDto(500, List.of(message)),

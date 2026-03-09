@@ -22,7 +22,7 @@ public class CarResponseDto {
     @NotNull
     private String color;
 
-    @Schema(description = "Дата создания машины", example = "1772465375606")
+    @Schema(description = "Дата создания машины", example = "1766091600000")
     @NotNull
     private Long createdAt;
 }

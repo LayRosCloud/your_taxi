@@ -14,3 +14,4 @@ REDIS_HOST: localhost
 REDIS_PASS: admin
 REDIS_DB: 0
 REDIS_PORT: 6379
+OSRM_HOST: http://localhost:5000

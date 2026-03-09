@@ -1,6 +1,7 @@
 package com.leafall.yourtaxi.entity;
 
 import com.leafall.yourtaxi.entity.aware.CreatedAtTimestampAware;
+import com.leafall.yourtaxi.entity.aware.UpdatedAtTimestampAware;
 import com.leafall.yourtaxi.entity.enums.OrderStatus;
 import com.leafall.yourtaxi.entity.listener.TimestampListener;
 import jakarta.persistence.*;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Table(name = "orders")
 @Data
 @EntityListeners({TimestampListener.class})
-public class OrderEntity implements CreatedAtTimestampAware {
+public class OrderEntity implements CreatedAtTimestampAware, UpdatedAtTimestampAware {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -24,7 +25,7 @@ public class OrderEntity implements CreatedAtTimestampAware {
     @ManyToOne(fetch = FetchType.EAGER)
     private UserEntity user;
 
-    @JoinColumn(name = "executor_id", nullable = false)
+    @JoinColumn(name = "executor_id", nullable = true)
     @ManyToOne(fetch = FetchType.EAGER)
     private TripEntity executor;
 
@@ -38,6 +39,9 @@ public class OrderEntity implements CreatedAtTimestampAware {
 
     @Column(name = "created_at", nullable = false)
     private Long createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Long updatedAt;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "order")
     private List<PointEntity> points;

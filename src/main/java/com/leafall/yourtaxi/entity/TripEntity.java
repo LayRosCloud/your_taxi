@@ -13,7 +13,7 @@ import java.util.UUID;
 @Table(name = "trips")
 public class TripEntity implements CreatedAtTimestampAware {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @JoinColumn(name = "user_id")

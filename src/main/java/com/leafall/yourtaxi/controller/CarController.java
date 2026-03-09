@@ -4,6 +4,7 @@ import com.leafall.yourtaxi.dto.car.CarCreateDto;
 import com.leafall.yourtaxi.dto.car.CarResponseDto;
 import com.leafall.yourtaxi.dto.car.CarUpdateDto;
 import com.leafall.yourtaxi.exception.annotation.ApiResponseBadRequest;
+import com.leafall.yourtaxi.exception.annotation.ApiResponseForbidden;
 import com.leafall.yourtaxi.exception.annotation.ApiResponseNotFound;
 import com.leafall.yourtaxi.exception.annotation.ApiResponseUnauthorized;
 import com.leafall.yourtaxi.service.CarService;
@@ -34,10 +35,25 @@ public class CarController {
             description = "Получить машины с учетом пагинации"
     )
     @ApiResponseUnauthorized
+    @ApiResponseForbidden
     @ApiResponse(description = "Получены автомобили", responseCode = "200")
     @PreAuthorize("hasAnyAuthority('EMPLOYEE', 'DISPATCHER')")
     public ResponseEntity<PaginationResponse<CarResponseDto>> findAll(@ParameterObject PaginationParams params) {
         var response = carService.findAll(params);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/v1/cars/available")
+    @Operation(
+            summary = "Получить доступные машины (автопарк)",
+            description = "Получить машины с учетом пагинации"
+    )
+    @ApiResponseUnauthorized
+    @ApiResponse(description = "Получены доступные автомобили", responseCode = "200")
+    @ApiResponseForbidden
+    @PreAuthorize("hasAnyAuthority('EMPLOYEE', 'DISPATCHER')")
+    public ResponseEntity<PaginationResponse<CarResponseDto>> findAllAvailable(@ParameterObject PaginationParams params) {
+        var response = carService.findAllAvailable(params);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

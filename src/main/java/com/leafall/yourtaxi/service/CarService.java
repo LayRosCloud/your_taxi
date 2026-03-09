@@ -31,6 +31,15 @@ public class CarService {
     }
 
     @Transactional(readOnly = true)
+    public PaginationResponse<CarResponseDto> findAllAvailable(PaginationParams params) {
+        var pageable = params.getPageable(false, "id");
+        var carPage = carRepository.findAllAvailable(pageable);
+        var cursor = new PaginationCursor(params, carPage.getTotalElements());
+        var dtoList = carPage.getContent().stream().map(carMapper::mapToDto).toList();
+        return new PaginationResponse<>(dtoList, cursor);
+    }
+
+    @Transactional(readOnly = true)
     public CarResponseDto findById(Long id) {
         var car = carRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("car.error.not-found"));

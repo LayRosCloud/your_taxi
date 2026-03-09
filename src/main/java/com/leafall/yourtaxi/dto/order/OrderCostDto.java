@@ -1,14 +1,14 @@
 package com.leafall.yourtaxi.dto.order;
 
+import com.leafall.yourtaxi.dto.point.PointCreateDto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class OrderCreateDto extends OrderCostDto {
+public class OrderCostDto {
     @NotNull
-    @Min(value = 0)
-    private Double radius;
+    private PointCreateDto from;
+    @NotNull
+    private PointCreateDto to;
 }

@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 @Embeddable
 @Data
@@ -16,7 +17,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class PointKey implements Serializable {
     @Column(name = "order_id", nullable = false)
-    private Long orderId;
+    private UUID orderId;
     @Column(name = "index", nullable = false)
     private Integer index;
 }

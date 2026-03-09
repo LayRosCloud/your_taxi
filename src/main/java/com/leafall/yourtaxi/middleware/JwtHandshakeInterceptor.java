@@ -22,20 +22,18 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
-        log.info("Начало отработки подключения");
         if (request instanceof ServletServerHttpRequest servletRequest) {
             String token = extractTokenFromHeader(servletRequest);
 
             if (token == null || token.isEmpty()) {
                 token = extractTokenFromQuery(servletRequest);
             }
-            log.info("Токен: {}", token);
             if (token != null) {
                 tokenService.validateAccessToken(token);
                 var claims = tokenService.getAccessClaims(token);
                 log.info("Токен провалидирован и достал id {} юзера", claims.getSubject());
                 attributes.put("DRIVER_ID", claims.getSubject());
-
+                attributes.put("user", claims.getSubject());
                 return true;
             } else {
                 return false;
@@ -46,7 +44,6 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override
     public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, @Nullable Exception exception) {
-        log.info("После обработки");
     }
 
     private String extractTokenFromHeader(ServletServerHttpRequest request) {
