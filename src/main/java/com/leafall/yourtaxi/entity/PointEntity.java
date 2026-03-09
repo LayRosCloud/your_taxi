@@ -2,6 +2,8 @@ package com.leafall.yourtaxi.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+import org.apache.commons.lang3.builder.ToStringExclude;
 import org.locationtech.jts.geom.Geometry;
 
 @Entity
@@ -15,6 +17,7 @@ public class PointEntity {
     @JoinColumn(name = "order_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("orderId")
+    @ToString.Exclude
     private OrderEntity order;
 
     @Column(name = "name", nullable = false)

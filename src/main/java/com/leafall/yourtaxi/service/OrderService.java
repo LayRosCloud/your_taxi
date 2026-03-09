@@ -60,12 +60,18 @@ public class OrderService {
         statuses.add(OrderStatus.REJECTED);
         OrderEntity order = null;
         if (user.getRole() == UserRole.USER) {
-            order = orderRepository.findByUserAndStatusNotIn(user, statuses)
-                    .orElseThrow(() -> new NotFoundException("user.error.not-found"));
+            var orders = orderRepository.findAllByUserAndStatusNotIn(user, statuses);
+            if (orders.size() == 0) {
+                throw new NotFoundException("order.error.not-found");
+            }
+            order = orders.get(0);
         } else {
             var trip = validateActualTrip();
-            order = orderRepository.findByExecutorAndStatusNotIn(trip, statuses)
-                    .orElseThrow(() -> new NotFoundException("trip.error.not-found"));
+            var orders = orderRepository.findAllByExecutorAndStatusNotIn(trip, statuses);
+            if (orders.size() == 0) {
+                throw new NotFoundException("order.error.not-found");
+            }
+            order = orders.get(0);
         }
         return orderMapper.mapToDto(order);
     }
@@ -107,9 +113,8 @@ public class OrderService {
         var statuses = new ArrayList<OrderStatus>();
         statuses.add(OrderStatus.COMPLETED);
         statuses.add(OrderStatus.REJECTED);
-        var existsOrder = orderRepository.findByUserAndStatusNotIn(user, statuses)
-                .isPresent();
-        if (existsOrder) {
+        var existsOrder = orderRepository.findAllByUserAndStatusNotIn(user, statuses);
+        if (existsOrder.size() > 0) {
             throw new ConflictException("order.error.exists-order");
         }
         var geos = geoService.getNearbyDrivers(dto.getFrom().getLongitude(), dto.getFrom().getLatitude(), dto.getRadius());
@@ -140,9 +145,11 @@ public class OrderService {
         order.setLongitude(dto.getFrom().getLongitude());
         order.setRadius(dto.getRadius());
         order.setIds(setIds);
+        System.out.println(order);
         var orderDto = orderMapper.mapToDto(newOrder);
+        System.out.println(firstId);
         redisTemplate.opsForValue().set(String.format("%s%s", ORDERS_KEY, newOrder.getId().toString()), order, 30, TimeUnit.MINUTES);
-        messagingTemplate.convertAndSendToUser(firstId, "/topic/orders/new", orderDto);
+        messagingTemplate.convertAndSendToUser(firstId, "/queue/orders/new", orderDto);
         return orderDto;
     }
 
@@ -177,7 +184,7 @@ public class OrderService {
             if (findedOrder.getStatus() != OrderStatus.NEW) {
                 throw new ConflictException("order.error.not-valid");
             }
-            messagingTemplate.convertAndSendToUser(executorId, "/topic/orders/new", orderDto);
+            messagingTemplate.convertAndSendToUser(executorId, "/queue/orders/new", orderDto);
         } else {
             findedOrder.setStatus(OrderStatus.REJECTED);
             var updatedOrder = orderRepository.save(findedOrder);

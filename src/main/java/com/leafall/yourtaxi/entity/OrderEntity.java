@@ -6,6 +6,8 @@ import com.leafall.yourtaxi.entity.enums.OrderStatus;
 import com.leafall.yourtaxi.entity.listener.TimestampListener;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+import org.apache.commons.lang3.builder.ToStringExclude;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
 
@@ -44,5 +46,6 @@ public class OrderEntity implements CreatedAtTimestampAware, UpdatedAtTimestampA
     private Long updatedAt;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "order")
+    @ToString.Exclude
     private List<PointEntity> points;
 }

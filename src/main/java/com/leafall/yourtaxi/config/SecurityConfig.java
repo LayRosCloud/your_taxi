@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,15 +28,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String[] PUBLIC_LIST_URLS = {"/v1/users/signin", "/connect", "/v1/users/signup","/v1/users/verify", "/v1/users/tokens/refresh", "/v3/api-docs/**","/swagger-ui/**","/swagger-ui"};
+    private static final String[] PUBLIC_LIST_URLS = {"/v1/orders/test","/v1/users/signin", "/connect", "/v1/users/signup","/v1/users/verify", "/v1/users/tokens/refresh", "/v3/api-docs/**","/swagger-ui/**","/swagger-ui"};
 
     private final AuthenticationProvider provider;
     private final JwtFilter jwtFilter;
+    private CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public SecurityFilterChain filterChain(final HttpSecurity http) {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_LIST_URLS).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -54,6 +57,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+
     private void sendErrorResponse(HttpServletResponse response, HttpStatus status, String message) throws IOException {
         response.setStatus(status.value());
         response.setContentType("application/json");

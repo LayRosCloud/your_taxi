@@ -15,7 +15,7 @@ import java.util.logging.LogRecord;
 @Component
 @Slf4j
 public class LoggerMiddleware implements Filter {
-    private static final String HEADER_CORRELATION_ID  = "X-Correlation-Id";
+    public static final String HEADER_CORRELATION_ID  = "X-Correlation-Id";
     public static final String HEADER_CORRELATION_LOG_ID  = "correlationId";
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {

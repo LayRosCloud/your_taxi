@@ -4,6 +4,7 @@ import com.leafall.yourtaxi.dto.order.OrderCostDto;
 import com.leafall.yourtaxi.dto.order.OrderCreateDto;
 import com.leafall.yourtaxi.dto.order.OrderResponseDto;
 import com.leafall.yourtaxi.dto.point.PointCostDto;
+import com.leafall.yourtaxi.entity.OrderEntity;
 import com.leafall.yourtaxi.exception.annotation.*;
 import com.leafall.yourtaxi.service.OrderService;
 import com.leafall.yourtaxi.utils.pagination.PaginationParams;
@@ -17,6 +18,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -62,7 +64,7 @@ public class OrderController {
     @PostMapping("/v1/orders")
     @Operation(
             summary = "Создать заказ",
-            description = "Создает новый заказ и сразу отправляет на событие `/topic/orders/new` о новом заказе"
+            description = "Создает новый заказ и сразу отправляет на событие `/user/queue/orders/new` о новом заказе"
     )
     @ApiResponseBadRequest
     @ApiResponseUnauthorized
@@ -85,7 +87,7 @@ public class OrderController {
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<OrderResponseDto> accept(@PathVariable UUID id) {
         var order = service.accept(id);
-        messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/topic/orders/change-status", order);
+        messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
@@ -101,7 +103,7 @@ public class OrderController {
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<OrderResponseDto> expect(@PathVariable UUID id) {
         var order = service.expectOrder(id);
-        messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/topic/orders/change-status", order);
+        messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
@@ -117,7 +119,7 @@ public class OrderController {
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<OrderResponseDto> inProcessOrder(@PathVariable UUID id) {
         var order = service.processOrder(id);
-        messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/topic/orders/change-status", order);
+        messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
@@ -133,7 +135,7 @@ public class OrderController {
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<OrderResponseDto> completeOrder(@PathVariable UUID id) {
         var order = service.completeOrder(id);
-        messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/topic/orders/change-status", order);
+        messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
