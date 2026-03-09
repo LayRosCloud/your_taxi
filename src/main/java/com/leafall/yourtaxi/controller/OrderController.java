@@ -40,8 +40,8 @@ public class OrderController {
     @ApiResponseUnauthorized
     @ApiResponseNotFound
     @ApiResponse(description = "Получить активные заказы аккаунта", responseCode = "200")
-    public ResponseEntity<PaginationResponse<OrderResponseDto>> findAllActiveOrders(@ParameterObject PaginationParams params) {
-        var orders = service.findActiveOrders(params);
+    public ResponseEntity<OrderResponseDto> findAllActiveOrders() {
+        var orders = service.findActiveOrder();
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 

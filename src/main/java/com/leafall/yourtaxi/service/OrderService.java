@@ -8,7 +8,6 @@ import com.leafall.yourtaxi.dto.point.PointCostDto;
 import com.leafall.yourtaxi.entity.OrderEntity;
 import com.leafall.yourtaxi.entity.PointEntity;
 import com.leafall.yourtaxi.entity.TripEntity;
-import com.leafall.yourtaxi.entity.VariableEntity;
 import com.leafall.yourtaxi.entity.enums.OrderStatus;
 import com.leafall.yourtaxi.entity.enums.UserRole;
 import com.leafall.yourtaxi.exception.BadRequestException;
@@ -19,12 +18,8 @@ import com.leafall.yourtaxi.mapper.OrderMapper;
 import com.leafall.yourtaxi.mapper.PointMapper;
 import com.leafall.yourtaxi.repository.*;
 import com.leafall.yourtaxi.utils.SecurityUtils;
-import com.leafall.yourtaxi.utils.pagination.PaginationCursor;
-import com.leafall.yourtaxi.utils.pagination.PaginationParams;
-import com.leafall.yourtaxi.utils.pagination.PaginationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -56,24 +51,23 @@ public class OrderService {
     private static final String ORDERS_KEY = "orders:employees:";
 
     @Transactional(readOnly = true)
-    public PaginationResponse<OrderResponseDto> findActiveOrders(PaginationParams params) {
+    public OrderResponseDto findActiveOrder() {
         var currentUserId = SecurityUtils.getCurrentUserId();
         var user = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new NotFoundException("user.error.not-found"));
         var statuses = new ArrayList<OrderStatus>();
         statuses.add(OrderStatus.COMPLETED);
         statuses.add(OrderStatus.REJECTED);
-        var pageable = params.getPageable(false, "createdAt");
-        Page<OrderEntity> orders = null;
+        OrderEntity order = null;
         if (user.getRole() == UserRole.USER) {
-            orders = orderRepository.findAllByUserAndStatusNotIn(user, statuses, pageable);
+            order = orderRepository.findByUserAndStatusNotIn(user, statuses)
+                    .orElseThrow(() -> new NotFoundException("user.error.not-found"));
         } else {
             var trip = validateActualTrip();
-            orders = orderRepository.findAllByExecutorAndStatusNotIn(trip, statuses, pageable);
+            order = orderRepository.findByExecutorAndStatusNotIn(trip, statuses)
+                    .orElseThrow(() -> new NotFoundException("trip.error.not-found"));
         }
-        var ordersResponse = orders.getContent().stream().map(orderMapper::mapToDto).toList();
-        var cursor = new PaginationCursor(params, orders.getTotalElements());
-        return new PaginationResponse<>(ordersResponse, cursor);
+        return orderMapper.mapToDto(order);
     }
 
     public PointCostDto getCostAndDuration(OrderCostDto dto) {
@@ -107,13 +101,21 @@ public class OrderService {
 
     @Transactional(rollbackFor = Exception.class)
     public OrderResponseDto create(OrderCreateDto dto) {
+        var currentUserId = SecurityUtils.getCurrentUserId();
+        var user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new NotFoundException("user.error.not-found"));
+        var statuses = new ArrayList<OrderStatus>();
+        statuses.add(OrderStatus.COMPLETED);
+        statuses.add(OrderStatus.REJECTED);
+        var existsOrder = orderRepository.findByUserAndStatusNotIn(user, statuses)
+                .isPresent();
+        if (existsOrder) {
+            throw new ConflictException("order.error.exists-order");
+        }
         var geos = geoService.getNearbyDrivers(dto.getFrom().getLongitude(), dto.getFrom().getLatitude(), dto.getRadius());
         if (geos.size() == 0) {
             throw new BadRequestException("order.error.not-valid");
         }
-        var currentUserId = SecurityUtils.getCurrentUserId();
-        var user = userRepository.findById(currentUserId)
-                .orElseThrow(() -> new NotFoundException("user.error.not-found"));
         var costAndDuration = getCostAndDuration(dto);
 
         var toSave = new OrderEntity();
@@ -162,7 +164,7 @@ public class OrderService {
             throw new NotFoundException("order.error.not-found");
         }
         var geos = geoService.getNearbyDrivers(order.getLongitude(), order.getLatitude(), order.getRadius());
-        geos = geos.stream().filter(x -> !order.getIds().contains(x.getId())).toList();
+        geos = geos.stream().filter(x -> !order.getIds().contains(x.getId().toString())).toList();
         var findedOrder = orderRepository.findById(order.getId())
                 .orElseThrow(() -> new NotFoundException("order.error.not-found"));
         var orderDto = orderMapper.mapToDto(findedOrder);
