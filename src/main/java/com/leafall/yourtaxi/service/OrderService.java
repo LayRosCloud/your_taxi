@@ -10,6 +10,7 @@ import com.leafall.yourtaxi.entity.PointEntity;
 import com.leafall.yourtaxi.entity.TripEntity;
 import com.leafall.yourtaxi.entity.VariableEntity;
 import com.leafall.yourtaxi.entity.enums.OrderStatus;
+import com.leafall.yourtaxi.entity.enums.UserRole;
 import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.exception.ConflictException;
 import com.leafall.yourtaxi.exception.ForbiddenException;
@@ -23,6 +24,7 @@ import com.leafall.yourtaxi.utils.pagination.PaginationParams;
 import com.leafall.yourtaxi.utils.pagination.PaginationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -62,7 +64,13 @@ public class OrderService {
         statuses.add(OrderStatus.COMPLETED);
         statuses.add(OrderStatus.REJECTED);
         var pageable = params.getPageable(false, "createdAt");
-        var orders = orderRepository.findAllByUserAndStatusNotIn(user, statuses, pageable);
+        Page<OrderEntity> orders = null;
+        if (user.getRole() == UserRole.USER) {
+            orders = orderRepository.findAllByUserAndStatusNotIn(user, statuses, pageable);
+        } else {
+            var trip = validateActualTrip();
+            orders = orderRepository.findAllByExecutorAndStatusNotIn(trip, statuses, pageable);
+        }
         var ordersResponse = orders.getContent().stream().map(orderMapper::mapToDto).toList();
         var cursor = new PaginationCursor(params, orders.getTotalElements());
         return new PaginationResponse<>(ordersResponse, cursor);

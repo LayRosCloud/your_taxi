@@ -54,16 +54,16 @@ server:
   host: ${SERVER_HOST}
 jwt:
   access:
-    secretKey: YmFzZTY0ZW5jb2Rlcl9HaG91bEVwdGExMjM0MTJkc2Z2c2Q0M2diZmRz
-    ttlMinutes: 60
+    secretKey: ${ACCESS_SECRET_KEY}
+    ttlMinutes: ${ACCESS_TTL_MINUTES}
   refresh:
-    secretKey: YmFzZTY0ZW5jb2Rlcl9HaG91bEVwdGExMjM0MTJkc2Z2c2Q0M2diZmRz
-    ttlMinutes: 120
+    secretKey: ${REFRESH_SECRET_KEY}
+    ttlMinutes: ${REFRESH_TTL_MINUTES}
 
 websocket:
   ports: ${WEBSOCKET_PORTS}
 frontend:
-  url: http://localhost:5173
+  url: ${FRONTEND_URL}
 services:
   osrm:
     host: ${OSRM_HOST}

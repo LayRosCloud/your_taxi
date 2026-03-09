@@ -37,6 +37,11 @@ services:
       - "SERVER_PORT=${SERVER_PORT}"
       - "SERVER_HOST=${SERVER_HOST}"
       - "OSRM_HOST=${OSRM_HOST}"
+      - "ACCESS_SECRET_KEY=${ACCESS_SECRET_KEY}"
+      - "REFRESH_SECRET_KEY=${REFRESH_SECRET_KEY}"
+      - "REFRESH_TTL_MINUTES=${REFRESH_TTL_MINUTES}"
+      - "ACCESS_TTL_MINUTES=${ACCESS_TTL_MINUTES}"
+      - "FRONTEND_URL=${FRONTEND_URL}"
     depends_on:
       redis_taxi:
         condition: service_healthy
