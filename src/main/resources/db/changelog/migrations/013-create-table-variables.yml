@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 013-create-table-variables
+      changes:
+        - sql:
+            "CREATE TYPE variables_type_enum AS ENUM ('NUMBER', 'STRING', 'BOOLEAN')"
+        - createTable:
+            tableName: variables
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: key
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_variables_key
+              - column:
+                  name: value
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: type
+                  type: variables_type_enum
+                  constraints:
+                    nullable: false
+        - sql:
+            "INSERT INTO variables(key, value, description, type) VALUES ('price', '3', 'Цена за км', 'NUMBER');"
+        - sql:
+            "INSERT INTO variables(key, value, description, type) VALUES ('timer_seconds', '6', 'Количество секунд на принятие решение исполнителем', 'NUMBER');"
+        - sql:
+            "INSERT INTO variables(key, value, description, type) VALUES ('big_order_from', '10', 'От скольки КМ заказ большой и его отправлять диспетчеру', 'NUMBER');"

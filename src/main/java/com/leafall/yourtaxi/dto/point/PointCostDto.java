@@ -10,4 +10,6 @@ public class PointCostDto {
     private Double price;
     @NotNull
     private Double durationInSeconds;
+    @NotNull
+    private Boolean isBigDistance;
 }

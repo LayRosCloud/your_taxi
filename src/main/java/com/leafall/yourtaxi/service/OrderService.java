@@ -8,6 +8,7 @@ import com.leafall.yourtaxi.dto.point.PointCostDto;
 import com.leafall.yourtaxi.entity.OrderEntity;
 import com.leafall.yourtaxi.entity.PointEntity;
 import com.leafall.yourtaxi.entity.TripEntity;
+import com.leafall.yourtaxi.entity.VariableEntity;
 import com.leafall.yourtaxi.entity.enums.OrderStatus;
 import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.exception.ConflictException;
@@ -15,10 +16,7 @@ import com.leafall.yourtaxi.exception.ForbiddenException;
 import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.mapper.OrderMapper;
 import com.leafall.yourtaxi.mapper.PointMapper;
-import com.leafall.yourtaxi.repository.OrderRepository;
-import com.leafall.yourtaxi.repository.PointRepository;
-import com.leafall.yourtaxi.repository.TripRepository;
-import com.leafall.yourtaxi.repository.UserRepository;
+import com.leafall.yourtaxi.repository.*;
 import com.leafall.yourtaxi.utils.SecurityUtils;
 import com.leafall.yourtaxi.utils.pagination.PaginationCursor;
 import com.leafall.yourtaxi.utils.pagination.PaginationParams;
@@ -31,9 +29,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import static com.leafall.yourtaxi.config.ConstantsConfig.BIG_ORDER_FROM_KEY;
+import static com.leafall.yourtaxi.config.ConstantsConfig.PRICE_KEY;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +50,7 @@ public class OrderService {
     private final SimpMessagingTemplate messagingTemplate;
     private final RedisTemplate<String, Object> redisTemplate;
     private final TripRepository tripRepository;
+    private final VariableRepository variableRepository;
     private static final String ORDERS_KEY = "orders:employees:";
 
     @Transactional(readOnly = true)
@@ -74,7 +77,23 @@ public class OrderService {
         var distance = distances.getRoutes().get(0);
         var point = new PointCostDto();
         point.setDurationInSeconds(distance.getDuration());
-        point.setPrice(distance.getDistance() / 1000 * 1);
+        var list = new ArrayList<String>(2);
+        list.add(PRICE_KEY);
+        list.add(BIG_ORDER_FROM_KEY);
+
+        var keys = variableRepository.findAllByKeyIn(list);
+        if (keys.size() != list.size()) {
+            throw new NotFoundException("key.error.not-found");
+        }
+        var map = new HashMap<String, String>();
+        for (var key: keys) {
+            map.put(key.getKey(), key.getValue());
+        }
+        var distanceKilometers = distance.getDistance() / 1000;
+        var price = Double.parseDouble(map.get(PRICE_KEY));
+        var distanceLimit = Double.parseDouble(map.get(BIG_ORDER_FROM_KEY));
+        point.setPrice(distanceKilometers * price);
+        point.setIsBigDistance(distanceKilometers < distanceLimit);
         return point;
     }
 
