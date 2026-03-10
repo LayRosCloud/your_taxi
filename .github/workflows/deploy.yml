@@ -6,6 +6,30 @@ on:
   pull_request:
     branches:
       - master
+env:
+  EXPOSE_SERVER_PORT: ${{ secrets.EXPOSE_SERVER_PORT }}
+  SERVER_PORT: ${{ secrets.SERVER_PORT }}
+  DB_PASS: ${{ secrets.DB_PASS }}
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_NAME: ${{ secrets.DB_NAME }}
+  DB_PORT: ${{ secrets.DB_PORT }}
+  DB_HOST: ${{ secrets.DB_HOST }}
+  MAIL_HOST: ${{ secrets.MAIL_HOST }}
+  MAIL_PORT: ${{ secrets.MAIL_PORT }}
+  MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+  MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+  WEBSOCKET_PORTS: ${{ secrets.WEBSOCKET_PORTS }}
+  REDIS_HOST: ${{ secrets.REDIS_HOST }}
+  REDIS_PASS: ${{ secrets.REDIS_PASS }}
+  REDIS_DB: ${{ secrets.REDIS_DB }}
+  REDIS_PORT: ${{ secrets.REDIS_PORT }}
+  SERVER_HOST: ${{ secrets.SERVER_HOST }}
+  ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
+  REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
+  REFRESH_TTL_MINUTES: ${{ secrets.REFRESH_TTL_MINUTES }}
+  ACCESS_TTL_MINUTES: ${{ secrets.ACCESS_TTL_MINUTES }}
+  FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+  OSRM_HOST: ${{ secrets.OSRM_HOST }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -38,29 +62,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Docker build
         run: docker compose -f compose.yaml up -d --build
-        env:
-          EXPOSE_SERVER_PORT: ${{ secrets.EXPOSE_SERVER_PORT }}
-          SERVER_PORT: ${{ secrets.SERVER_PORT }}
-          DB_PASS: ${{ secrets.DB_PASS }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_HOST: ${{ secrets.DB_HOST }}
-          MAIL_HOST: ${{ secrets.MAIL_HOST }}
-          MAIL_PORT: ${{ secrets.MAIL_PORT }}
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-          WEBSOCKET_PORTS: ${{ secrets.WEBSOCKET_PORTS }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PASS: ${{ secrets.REDIS_PASS }}
-          REDIS_DB: ${{ secrets.REDIS_DB }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
-          REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
-          REFRESH_TTL_MINUTES: ${{ secrets.REFRESH_TTL_MINUTES }}
-          ACCESS_TTL_MINUTES: ${{ secrets.ACCESS_TTL_MINUTES }}
-          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
-          OSRM_HOST: ${{ secrets.OSRM_HOST }}
+
 
 
