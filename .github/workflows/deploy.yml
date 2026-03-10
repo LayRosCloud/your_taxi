@@ -27,7 +27,7 @@ jobs:
       - name: Cd to folder
         run: cd /home/runner/projects/your_taxi
       - name: Git checkout
-        run: git pull
+        uses: actions/checkout@v4
       - name: Docker build
         run: docker compose -f compose.yaml up -d --build
 
