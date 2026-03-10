@@ -43,7 +43,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Test with Maven
-        run: mvn -B package --file pom.xml
+        run: mvn -B test --file pom.xml
   prepare-environment:
     runs-on: self-hosted
     needs: [build]
