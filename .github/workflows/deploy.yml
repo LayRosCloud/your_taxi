@@ -20,9 +20,17 @@ jobs:
           cache: maven
       - name: Test with Maven
         run: mvn -B package --file pom.xml
-  deploy:
+  prepare-environment:
     runs-on: self-hosted
     needs: [build]
+    steps:
+      - name: Cd to folder
+        run: cd /home/runner/projects/your_taxi
+      - name: Docker stop
+        run: docker compose -f compose.yaml down
+  deploy:
+    runs-on: self-hosted
+    needs: [prepare-environment]
     steps:
       - name: Cd to folder
         run: cd /home/runner/projects/your_taxi
