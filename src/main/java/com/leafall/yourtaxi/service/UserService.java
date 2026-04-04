@@ -108,21 +108,21 @@ public class UserService {
     }
 
     private SuccessAuthDto sendIfNotActiveAccount(UserEntity user) {
-        if (!user.getIsActive()) {
-            var code = new CodeEntity();
-            code.setUser(user);
-            code.setCode(generateCode());
-            code = codeRepository.save(code);
-            emailService.sendVerificationMessage(VerificationDto.builder()
-                    .code(code.getCode())
-                    .email(user.getEmail())
-                    .username(user.getFullName())
-                    .build()
-            );
-            return SuccessAuthDto.builder()
-                    .user(mapper.mapToDto(user))
-                    .build();
-        }
+//        if (!user.getIsActive()) {
+//            var code = new CodeEntity();
+//            code.setUser(user);
+//            code.setCode(generateCode());
+//            code = codeRepository.save(code);
+//            emailService.sendVerificationMessage(VerificationDto.builder()
+//                    .code(code.getCode())
+//                    .email(user.getEmail())
+//                    .username(user.getFullName())
+//                    .build()
+//            );
+//            return SuccessAuthDto.builder()
+//                    .user(mapper.mapToDto(user))
+//                    .build();
+//        }
         var accessToken = tokenService.generateAccessToken(user.getId());
         var refreshToken = tokenService.generateRefreshToken(user.getId());
         return SuccessAuthDto.builder()
