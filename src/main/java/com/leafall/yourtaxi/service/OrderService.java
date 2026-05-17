@@ -244,7 +244,7 @@ public class OrderService {
         var currentUserId = SecurityUtils.getCurrentUserId();
         var order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("order.error.not-found"));
-        if (order.getUser().getId() != currentUserId) {
+        if (!order.getUser().getId().equals(currentUserId)) {
             throw new ForbiddenException("order.error.not-found");
         }
         if (order.getStatus() != OrderStatus.NEW) {
