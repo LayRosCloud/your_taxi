@@ -73,7 +73,9 @@ public class UserController {
     @ApiResponseNotFound
     @ApiResponse(responseCode = "200", description = "Успешная верификация")
     public ResponseEntity<SuccessAuthDto> verify(@RequestBody @Valid VerifyEmailDto dto) {
+        log.info("Верификация аккаунта id={}, code={}", dto.getId(), dto.getCode());
         var user = service.verifyEmail(dto);
+        log.info("Аккаунт верифицирован id={} isActive={}", user.getUser().getId(), user.getUser().getIsActive());
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
@@ -85,7 +87,9 @@ public class UserController {
     @ApiResponseNotFound
     @ApiResponse(responseCode = "200", description = "Успешное обновление токена")
     public ResponseEntity<TokenHolder> refresh(@RequestBody @Valid RefreshDto dto) {
+        log.info("Начало рефреша аккаунта {}", getCurrentUser());
         var user = service.refresh(dto);
+        log.info("Получена новая пара токенов для аккаунта {}", getCurrentUser());
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
@@ -101,11 +105,13 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> logout(@RequestHeader(name = "Authorization") String authToken) {
         if (authToken == null || !authToken.startsWith("Bearer ")) {
+            log.info("Не был передан токен");
             throw new BadRequestException("base.error.bad-request");
         }
         authToken = authToken.substring(7);
-
+        log.info("Начало выхода из аккаунта");
         service.logout(authToken);
+        log.info("Выход из аккаунта произошел успешно");
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

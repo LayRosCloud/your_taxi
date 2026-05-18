@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Variables", description = "переменные в приложении")
+@Slf4j
 public class VariableController {
 
     private final VariableService variableService;
@@ -35,7 +37,9 @@ public class VariableController {
     @ApiResponse(description = "Переменные получены", responseCode = "200")
     @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<PaginationResponse<VariableResponseDto>> findAll(@ParameterObject PaginationParams params) {
+        log.info("Начало получения переменных {}", params);
         var variables = variableService.findAll(params);
+        log.info("Переменные получены total={}", variables.cursor().getTotal());
         return new ResponseEntity<>(variables, HttpStatus.OK);
     }
 
@@ -48,7 +52,9 @@ public class VariableController {
     @ApiResponse(description = "Переменная получена", responseCode = "200")
     @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<VariableResponseDto> findById(@PathVariable UUID id) {
+        log.info("Начало получения переменной {}", id);
         var variable = variableService.findById(id);
+        log.info("Переменная получена {}", variable.getKey());
         return new ResponseEntity<>(variable, HttpStatus.OK);
     }
 
@@ -60,7 +66,9 @@ public class VariableController {
     @ApiResponseUnauthorized
     @ApiResponse(description = "Переменная получена", responseCode = "200")
     public ResponseEntity<VariableResponseDto> findByKey(@PathVariable String key) {
+        log.info("Начало получение переменной по ключу {}", key);
         var variable = variableService.findByKey(key);
+        log.info("Переменная получена по ключу id={}", variable.getId());
         return new ResponseEntity<>(variable, HttpStatus.OK);
     }
 
@@ -73,7 +81,9 @@ public class VariableController {
     @ApiResponseUnauthorized
     @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<VariableResponseDto> update(@RequestBody @Valid VariableUpdateDto dto) {
+        log.info("Начало обновления переменной id={}", dto.getId());
         var variable = variableService.update(dto);
+        log.info("Переменная обновлена id={}, value={}", dto.getId(), dto.getValue());
         return new ResponseEntity<>(variable, HttpStatus.OK);
     }
 }

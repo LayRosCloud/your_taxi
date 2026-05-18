@@ -1,10 +1,12 @@
 package com.leafall.yourtaxi.utils.pagination;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import lombok.ToString;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+@ToString
 public record PaginationParams(@Parameter(description = "Лимит", example = "0") Integer limit,
                                @Parameter(description = "Номер страницы", example = "0") Integer page) {
 

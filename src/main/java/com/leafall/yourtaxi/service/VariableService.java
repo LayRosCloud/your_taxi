@@ -60,6 +60,7 @@ public class VariableService {
                 Double.parseDouble(dto.getValue());
             }
         } catch (NumberFormatException e) {
+            log.info("Неправильное значение \"{}\" для числовой переменной", dto.getValue());
             throw new BadRequestException("variable.error.format-error");
         }
         var newVariable = variableRepository.save(variable);

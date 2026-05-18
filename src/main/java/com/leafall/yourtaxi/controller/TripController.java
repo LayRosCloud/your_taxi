@@ -13,14 +13,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
+
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Trips", description = "Сессии исполнителей")
+@Slf4j
 public class TripController {
 
     private final TripService tripService;
@@ -38,8 +42,10 @@ public class TripController {
     @ApiResponse(description = "Получена активная сессия", responseCode = "200")
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<TripResponseDto> getActiveSession() {
-       var trip = tripService.findYourActiveTrip();
-       return new ResponseEntity<>(trip, HttpStatus.OK);
+        log.info("Получение активной машины у исполнителя {}", getCurrentUserId());
+        var trip = tripService.findYourActiveTrip();
+        log.info("Сессия получена id={}", trip.getId());
+        return new ResponseEntity<>(trip, HttpStatus.OK);
     }
 
     @PostMapping("/v1/trips/start")
@@ -55,7 +61,9 @@ public class TripController {
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<TripResponseDto> startTrip(@RequestBody @Valid TripStartDto dto) {
+        log.info("Начало создание сессии для пользователя {} с машиной {}", getCurrentUserId(), dto.getCarId());
         var trip = tripService.startTrip(dto);
+        log.info("Сессия создана для пользователя {} её id={}", getCurrentUserId(), trip.getId());
         return new ResponseEntity<>(trip, HttpStatus.CREATED);
     }
 
@@ -71,7 +79,9 @@ public class TripController {
     @ApiResponse(description = "Остановлена сессия с машиной", responseCode = "200")
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<TripResponseDto> stopTrip(@RequestBody @Valid TripEndDto dto) {
+        log.info("Начало остановки сессии для пользователя {} с машиной {}", getCurrentUserId(), dto.getCarId());
         var trip = tripService.stopTrip(dto);
+        log.info("Сессия остановлена для пользователя {} её id={}", getCurrentUserId(), trip.getId());
         return new ResponseEntity<>(trip, HttpStatus.OK);
     }
 }

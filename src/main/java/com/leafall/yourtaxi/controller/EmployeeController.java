@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Employees", description = "Сотрудники")
 public class EmployeeController {
 
@@ -38,7 +40,9 @@ public class EmployeeController {
     @ApiResponse(responseCode = "200", description = "Получены все сотрудники")
     @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<PaginationResponse<UserResponseDto>> findAll(@ParameterObject PaginationParams pagination) {
+        log.info("Начало получения сотрудников: {}", pagination);
         var users = service.findAllEmployees(pagination);
+        log.info("Получено {} сотрудников", users.cursor().getTotal());
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
@@ -53,7 +57,9 @@ public class EmployeeController {
     @ApiResponse(responseCode = "200", description = "Получен сотрудник")
     @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<UserResponseDto> findById(@PathVariable UUID id) {
+        log.info("Начало получения сотрудника по id: {}", id);
         var user = service.findById(id);
+        log.info("Получен сотрудник {}", user.getFullName());
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
@@ -68,7 +74,9 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<UserResponseDto> create(@RequestBody @Valid EmployeeCreateDto dto) {
+        log.info("Начало создания сотрудника: fullname={} email={}", dto.getFullName(), dto.getEmail());
         var user = service.create(dto);
+        log.info("Сотрудник создан id={}", user.getId());
         return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 
@@ -83,7 +91,9 @@ public class EmployeeController {
     @ApiResponse(responseCode = "200", description = "Обновлен сотрудник")
     @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<UserResponseDto> update(@RequestBody @Valid EmployeeUpdateDto dto) {
+        log.info("Начало обновления сотрудника: id={}", dto.getId());
         var user = service.update(dto);
+        log.info("Сотрудник {} обновлен email={}", dto.getFullName(), dto.getEmail());
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
@@ -98,7 +108,9 @@ public class EmployeeController {
     @ApiResponse(responseCode = "200", description = "Сотрудник отмечен на удаление")
     @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<UserResponseDto> deleteSoft(@PathVariable UUID id) {
+        log.info("Начало мягкого удаления сотрудника: id={}", id);
         var user = service.delete(id);
+        log.info("Сотрудник мягко удален");
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
@@ -114,7 +126,9 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<Void> deleteHard(@PathVariable UUID id) {
+        log.info("Начало жесткого удаления сотрудника: id={}", id);
         service.deleteHard(id);
+        log.info("Сотрудник удален навсегда");
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
