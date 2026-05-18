@@ -62,6 +62,7 @@ public class OrderService {
         if (user.getRole() == UserRole.USER) {
             var orders = orderRepository.findAllByUserAndStatusNotIn(user, statuses);
             if (orders.size() == 0) {
+                log.info("Заказов не было найдено для пользователя {}", currentUserId);
                 throw new NotFoundException("order.error.not-found");
             }
             order = orders.get(0);
@@ -69,6 +70,7 @@ public class OrderService {
             var trip = validateActualTrip();
             var orders = orderRepository.findAllByExecutorAndStatusNotIn(trip, statuses);
             if (orders.size() == 0) {
+                log.info("Заказов не было найдено для исполнителя {}", currentUserId);
                 throw new NotFoundException("order.error.not-found");
             }
             order = orders.get(0);
@@ -101,7 +103,7 @@ public class OrderService {
         var price = Double.parseDouble(map.get(PRICE_KEY));
         var distanceLimit = Double.parseDouble(map.get(BIG_ORDER_FROM_KEY));
         point.setPrice(distanceKilometers * price);
-        point.setIsBigDistance(distanceKilometers < distanceLimit);
+        point.setIsBigDistance(distanceKilometers >= distanceLimit);
         return point;
     }
 
@@ -130,12 +132,12 @@ public class OrderService {
         toSave.setUser(user);
         toSave.setStatus(OrderStatus.NEW);
         var newOrder = orderRepository.save(toSave);
-
+        log.debug("Заказ создан id={}, currentUserId={}", newOrder.getId(), currentUserId);
         var pointsToSave = new ArrayList<PointEntity>(2);
         pointsToSave.add(pointMapper.mapToEntity(dto.getFrom(), newOrder, 0));
         pointsToSave.add(pointMapper.mapToEntity(dto.getTo(), newOrder, 1));
         var points = pointRepository.saveAll(pointsToSave);
-
+        log.debug("Точки созданы для заказа {}", newOrder.getId());
         newOrder.setPoints(points);
         var firstId = geos.getFirst().getId().toString();
         var setIds = new HashSet<String>(1);
@@ -159,7 +161,14 @@ public class OrderService {
     public OrderResponseDto accept(UUID id) {
         var trip = validateActualTrip();
         var order = orderRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("order.error.not-found"));
+                .orElseThrow(() -> {
+                    log.info("Заказ {} не найден", id);
+                    return new NotFoundException("order.error.not-found");
+                });
+        if (order.getStatus() != OrderStatus.NEW) {
+            log.info("Заказ {} уже имеет не новый статус. Невозможно принять", id);
+            throw new ConflictException("order.error.not-valid");
+        }
         order.setStatus(OrderStatus.ACCEPT);
         order.setExecutor(trip);
         var newOrder = orderRepository.save(order);
@@ -170,6 +179,7 @@ public class OrderService {
     public OrderResponseDto cancel(UUID id) {
         var order = (OrderRedisWaitingDto)redisTemplate.opsForValue().get(String.format("%s%s", ORDERS_KEY, id));
         if (order == null) {
+            log.warn("Заказ {} из Redis не найден", id);
             throw new NotFoundException("order.error.not-found");
         }
         var geos = geoService.getNearbyDrivers(order.getLongitude(), order.getLatitude(), order.getRadius());
@@ -184,10 +194,16 @@ public class OrderService {
             redisTemplate.opsForValue().set(String.format("%s%s", ORDERS_KEY, order.getId().toString()), order, 30, TimeUnit.MINUTES);
 
             if (findedOrder.getStatus() != OrderStatus.NEW) {
+                log.info("Заказ {} уже имеет статус {}. Невозможно найти для него исполнителя", findedOrder.getId(), findedOrder.getStatus());
                 throw new ConflictException("order.error.not-valid");
             }
+            log.info("Заказу {} будет отправлен новый исполнитель {}", findedOrder.getId(), executorId);
             messagingTemplate.convertAndSendToUser(executorId, "/queue/orders/new", orderDto);
         } else {
+            if (findedOrder.getStatus() != OrderStatus.NEW) {
+                log.info("Заказ {} уже имеет статус {}. Невозможно отменить заказ", findedOrder.getId(), findedOrder.getStatus());
+                throw new ConflictException("order.error.not-valid");
+            }
             findedOrder.setStatus(OrderStatus.REJECTED);
             var updatedOrder = orderRepository.save(findedOrder);
             orderDto = orderMapper.mapToDto(updatedOrder);
@@ -202,9 +218,11 @@ public class OrderService {
         var order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("order.error.not-found"));
         if (!trip.getId().equals(order.getExecutor().getId())) {
+            log.info("Исполнителем заказа {} является исполнитель {}, не {}. Он не может принять в ожидание.", id, order.getExecutor().getId(), trip.getId());
             throw new ForbiddenException("order.error.not-executor");
         }
         if (order.getStatus() != OrderStatus.ACCEPT) {
+            log.info("Заказ {} уже имеет статус {}. Невозможно поставить в ожидание", id, order.getStatus());
             throw new ConflictException("order.error.bad-status");
         }
         order.setStatus(OrderStatus.EXPECTATION);
@@ -218,9 +236,11 @@ public class OrderService {
         var order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("order.error.not-found"));
         if (!trip.getId().equals(order.getExecutor().getId())) {
+            log.info("Исполнителем заказа {} является исполнитель {}, не {}. Он не может начать заказ.", id, order.getExecutor().getId(), trip.getId());
             throw new ForbiddenException("order.error.not-executor");
         }
         if (order.getStatus() != OrderStatus.EXPECTATION) {
+            log.info("Заказ {} уже имеет статус {}. Невозможно начать в работу", id, order.getStatus());
             throw new ConflictException("order.error.bad-status");
         }
         order.setStatus(OrderStatus.IN_PROCESS);
@@ -234,7 +254,12 @@ public class OrderService {
         var order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("order.error.not-found"));
         if (!trip.getId().equals(order.getExecutor().getId())) {
+            log.info("Исполнителем заказа {} является исполнитель {}, не {}. Он не может завершить.", id, order.getExecutor().getId(), trip.getId());
             throw new ForbiddenException("order.error.not-executor");
+        }
+        if (order.getStatus() != OrderStatus.IN_PROCESS) {
+            log.info("Заказ {} уже имеет статус {}. Невозможно завершить", id, order.getStatus());
+            throw new ConflictException("order.error.not-valid");
         }
         order.setStatus(OrderStatus.COMPLETED);
         var newOrder = orderRepository.save(order);
@@ -247,9 +272,11 @@ public class OrderService {
         var order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("order.error.not-found"));
         if (!order.getUser().getId().equals(currentUserId)) {
+            log.info("Заказчиком заказа {} является пользователь {}, не {}. Он не может отклонить.", id, order.getUser().getId(), currentUserId);
             throw new ForbiddenException("order.error.not-found");
         }
         if (order.getStatus() != OrderStatus.NEW) {
+            log.info("Заказ {} уже имеет статус {}. Невозможно отклонить", id, order.getStatus());
             throw new ConflictException("order.error.bad-status");
         }
         order.setStatus(OrderStatus.REJECTED);

@@ -84,23 +84,6 @@ public class OrderController {
         return new ResponseEntity<>(order, HttpStatus.CREATED);
     }
 
-    @PostMapping("/v1/orders/test")
-    @Operation(
-            summary = "Создать заказ",
-            description = "Создает новый заказ и сразу отправляет на событие `/user/queue/orders/new` о новом заказе"
-    )
-    @ApiResponseBadRequest
-    @ApiResponseUnauthorized
-    @ApiResponseNotFound
-    @ApiResponse(description = "Создать заказ", responseCode = "200")
-    public ResponseEntity<OrderResponseDto> test(@RequestBody @Valid OrderTestDto dto) {
-        log.info("Начало теста заказа: userId={}", dto.getId());
-        log.info("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", dto.getId());
-        var order = new OrderResponseDto();
-        messagingTemplate.convertAndSendToUser(dto.getId().toString(), "/queue/orders/change-status", order);
-        return new ResponseEntity<>(order, HttpStatus.CREATED);
-    }
-
     @PatchMapping("/v1/orders/{id}/accept")
     @Operation(
             summary = "Принять заказ от исполнителя",
@@ -115,7 +98,7 @@ public class OrderController {
         log.info("Начало принятия заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.accept(id);
         log.info("Заказ {} принят в исполнение исполнителем {}.", id, getCurrentUserId());
-        log.info("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
+        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
         messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
@@ -134,7 +117,7 @@ public class OrderController {
         log.info("Начало ожидания заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.expectOrder(id);
         log.info("Заказ {} принят в ожидание исполнителем {}.", id, getCurrentUserId());
-        log.info("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
+        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
         messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
@@ -153,7 +136,7 @@ public class OrderController {
         log.info("Начало выполнения заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.processOrder(id);
         log.info("Заказ {} принят в работу исполнителем {}.", id, getCurrentUserId());
-        log.info("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
+        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
         messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
@@ -172,7 +155,7 @@ public class OrderController {
         log.info("Начало завершения заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.completeOrder(id);
         log.info("Заказ {} завершен исполнителем {}.", id, getCurrentUserId());
-        log.info("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
+        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
         messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
@@ -195,7 +178,7 @@ public class OrderController {
         log.info("Начало отмены заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.reject(id);
         log.info("Заказ {} отменен заказчиком {}.", id, getCurrentUserId());
-        log.info("[/topic/orders/rejecting] Начало отправки уведомления всем ");
+        log.debug("[/topic/orders/rejecting] Начало отправки уведомления всем ");
         messagingTemplate.convertAndSend("/topic/orders/rejecting", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }

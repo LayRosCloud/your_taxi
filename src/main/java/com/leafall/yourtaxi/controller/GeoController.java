@@ -46,7 +46,9 @@ public class GeoController {
         if (radius == null) {
             radius = 1000d;
         }
+        log.info("Начала получения координат lon={} lat={} radius={}", lon, lat, radius);
         var geos = geoService.getNearbyDrivers(lon, lat, radius);
+        log.info("Получено {} исполнителей.", geos.size());
         return new ResponseEntity<>(geos, HttpStatus.OK);
     }
 
