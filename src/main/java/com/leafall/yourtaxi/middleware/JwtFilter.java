@@ -1,5 +1,6 @@
 package com.leafall.yourtaxi.middleware;
 
+import com.leafall.yourtaxi.config.SecurityConfig;
 import com.leafall.yourtaxi.entity.UserDetailsImpl;
 import com.leafall.yourtaxi.entity.UserEntity;
 import com.leafall.yourtaxi.service.TokenService;
@@ -19,6 +20,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.UUID;
 
 @Component
@@ -33,7 +35,14 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = getTokenFromRequest(request);
-        if (token != null) {
+        boolean isPublicUrl = false;
+        for (var uri: SecurityConfig.PUBLIC_LIST_URLS) {
+            if (uri.equals(request.getRequestURI())) {
+                isPublicUrl = true;
+                break;
+            }
+        }
+        if (token != null && !isPublicUrl) {
             tokenService.validateAccessToken(token);
             var claims = tokenService.getAccessClaims(token);
             var userDetails = userDetailsService.loadUserByUsername(claims.getSubject());
