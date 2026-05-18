@@ -31,12 +31,10 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
             if (token != null) {
                 tokenService.validateAccessToken(token);
                 var claims = tokenService.getAccessClaims(token);
-                log.info("Токен провалидирован и достал id {} юзера", claims.getSubject());
+                log.info("Токен провалидирован и был получен id {} юзера", claims.getSubject());
                 attributes.put("DRIVER_ID", claims.getSubject());
                 attributes.put("user", claims.getSubject());
                 return true;
-            } else {
-                return false;
             }
         }
         return false;
