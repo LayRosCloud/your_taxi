@@ -97,7 +97,7 @@ public class OrderController {
         log.info("Начало принятия заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.accept(id);
         log.info("Заказ {} принят в исполнение исполнителем {}.", id, getCurrentUserId());
-        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
+        log.info("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
         messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
@@ -116,7 +116,7 @@ public class OrderController {
         log.info("Начало ожидания заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.expectOrder(id);
         log.info("Заказ {} принят в ожидание исполнителем {}.", id, getCurrentUserId());
-        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
+        log.info("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
         messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
@@ -135,7 +135,7 @@ public class OrderController {
         log.info("Начало выполнения заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.processOrder(id);
         log.info("Заказ {} принят в работу исполнителем {}.", id, getCurrentUserId());
-        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
+        log.info("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
         messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
@@ -154,7 +154,7 @@ public class OrderController {
         log.info("Начало завершения заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.completeOrder(id);
         log.info("Заказ {} завершен исполнителем {}.", id, getCurrentUserId());
-        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
+        log.info("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
         messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
@@ -177,7 +177,7 @@ public class OrderController {
         log.info("Начало отмены заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.reject(id);
         log.info("Заказ {} отменен заказчиком {}.", id, getCurrentUserId());
-        log.debug("[/topic/orders/rejecting] Начало отправки уведомления всем ");
+        log.info("[/topic/orders/rejecting] Начало отправки уведомления всем ");
         messagingTemplate.convertAndSend("/topic/orders/rejecting", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }

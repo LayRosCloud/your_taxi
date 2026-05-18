@@ -27,30 +27,11 @@ public class LoggerMiddleware implements Filter {
         }
         response.setHeader(HEADER_CORRELATION_ID, correlationId);
         MDC.put(HEADER_CORRELATION_LOG_ID, correlationId);
-        var currentTime = TimeUtils.getCurrentTimeFromUTC();
         try {
-            logStart(httpRequest, correlationId);
             filterChain.doFilter(servletRequest, servletResponse);
-        } catch (Exception error) {
-            logError(httpRequest, correlationId, error);
-            throw error;
         } finally {
-            var newCurrentTime = TimeUtils.getCurrentTimeFromUTC();
-            logEnd(httpRequest, correlationId, newCurrentTime - currentTime);
-
             MDC.clear();
         }
     }
 
-    public void logStart(HttpServletRequest request, String correlationId) {
-        log.info("[START][{}] {} {}", correlationId, request.getMethod(), request.getRequestURI());
-    }
-
-    public void logEnd(HttpServletRequest request, String correlationId, Long ticks) {
-        log.info("[END][{}] {} {} {} ms", correlationId, request.getMethod(), request.getRequestURI(), ticks);
-    }
-
-    public void logError(HttpServletRequest request, String correlationId, Exception error) {
-        log.error("[ERROR][{}] {} {}: {}", correlationId, request.getMethod(), request.getRequestURI(), error.getMessage());
-    }
 }

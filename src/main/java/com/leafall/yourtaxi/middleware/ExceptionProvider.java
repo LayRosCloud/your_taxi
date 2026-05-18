@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -28,13 +29,21 @@ public class ExceptionProvider {
 
     private final MessageSource messageSource;
 
-    @ExceptionHandler(NoResourceFoundException.class)
+    @ExceptionHandler({NoResourceFoundException.class})
     public ResponseEntity<ErrorDto> handleException(NoResourceFoundException exception, Locale locale) {
-        log.warn(exception.getMessage(), exception);
-        var message = messageSource.getMessage("base.error.not-found", new Object[]{}, locale);
+        log.warn(exception.getMessage());
         return new ResponseEntity<>(
-                new ErrorDto(404, List.of(message)),
-                HttpStatus.NOT_FOUND
+                new ErrorDto(405, List.of("Method is not allowed")),
+                HttpStatus.METHOD_NOT_ALLOWED
+        );
+    }
+
+    @ExceptionHandler({HttpRequestMethodNotSupportedException.class})
+    public ResponseEntity<ErrorDto> handleException(HttpRequestMethodNotSupportedException exception, Locale locale) {
+        log.warn(exception.getMessage());
+        return new ResponseEntity<>(
+                new ErrorDto(405, List.of("Method is not allowed")),
+                HttpStatus.METHOD_NOT_ALLOWED
         );
     }
 
@@ -69,8 +78,7 @@ public class ExceptionProvider {
     public ResponseEntity<ErrorDto> handleException(ApiError exception, Locale locale) {
         var message = messageSource.getMessage(exception.getMessage(), new Object[]{}, locale);
 
-        var logId = MDC.get(LoggerMiddleware.HEADER_CORRELATION_LOG_ID);
-        log.warn("[{}] {}", logId, message);
+        log.warn(message);
         return new ResponseEntity<>(
                 new ErrorDto(exception.getStatus(), List.of(message)),
                 HttpStatusCode.valueOf(exception.getStatus())
@@ -79,8 +87,7 @@ public class ExceptionProvider {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDto> handleException(Exception exception, Locale locale) {
-        var logId = MDC.get(LoggerMiddleware.HEADER_CORRELATION_LOG_ID);
-        log.error("[{}] {}",logId, exception.getMessage(), exception);
+        log.error(exception.getMessage(), exception);
         var message = messageSource.getMessage("base.error.internal-server-error", new Object[]{}, locale);
         return new ResponseEntity<>(
                 new ErrorDto(500, List.of(message)),
