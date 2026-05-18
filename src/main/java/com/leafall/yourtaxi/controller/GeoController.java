@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -27,6 +28,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @MessageMapping("/v1/coords")
 @Tag(name = "Coords", description = "Текущее местоположение")
+@Slf4j
 public class GeoController {
     private final GeoService geoService;
     private final SimpMessagingTemplate messagingTemplate;
@@ -52,7 +54,9 @@ public class GeoController {
     @SendToUser("/queue/errors")
     public void setCoordinate(CoordinateSaveDto dto, SimpMessageHeaderAccessor headerAccessor) {
         UUID driverId = UUID.fromString((String) headerAccessor.getSessionAttributes().get("DRIVER_ID"));
+        log.info("Установка новой геоточки {} для пользователя {}", dto, driverId);
         var result = geoService.updateDriverLocation(driverId, dto);
+        log.info("Точка установлена для пользователя {}. И начало отправки всем /topic/set/position", driverId);
         messagingTemplate.convertAndSend("/topic/set/position", result);
 
     }

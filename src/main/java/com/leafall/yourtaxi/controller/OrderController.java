@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +27,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
+
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Orders", description = "Работа с заказами")
+@Slf4j
 public class OrderController {
 
     private final OrderService service;
@@ -57,7 +61,9 @@ public class OrderController {
     @ApiResponseNotFound
     @ApiResponse(description = "Получить стоимость поездки", responseCode = "200")
     public ResponseEntity<PointCostDto> getCost(@RequestBody @Valid OrderCostDto dto) {
+        log.info("Получение цен между точками: {}", dto);
         var orders = service.getCostAndDuration(dto);
+        log.info("Цены получены: {}", orders);
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 
@@ -71,7 +77,9 @@ public class OrderController {
     @ApiResponseNotFound
     @ApiResponse(description = "Создать заказ", responseCode = "201")
     public ResponseEntity<OrderResponseDto> create(@RequestBody @Valid OrderCreateDto dto) {
+        log.info("Начало создания заказа: from={}, to={} currentUserId={}", dto.getFrom(), dto.getTo(), getCurrentUserId());
         var order = service.create(dto);
+        log.info("Заказ создан: id={}", order.getId());
         return new ResponseEntity<>(order, HttpStatus.CREATED);
     }
 
@@ -86,7 +94,10 @@ public class OrderController {
     @ApiResponse(description = "Подтвердить заказ", responseCode = "200")
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<OrderResponseDto> accept(@PathVariable UUID id) {
+        log.info("Начало принятия заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.accept(id);
+        log.info("Заказ {} принят в исполнение исполнителем {}.", id, getCurrentUserId());
+        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
         messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
@@ -102,7 +113,10 @@ public class OrderController {
     @ApiResponse(description = "Заказ в ожидание", responseCode = "200")
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<OrderResponseDto> expect(@PathVariable UUID id) {
+        log.info("Начало ожидания заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.expectOrder(id);
+        log.info("Заказ {} принят в ожидание исполнителем {}.", id, getCurrentUserId());
+        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
         messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
@@ -118,7 +132,10 @@ public class OrderController {
     @ApiResponse(description = "Заказ в процессе", responseCode = "200")
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<OrderResponseDto> inProcessOrder(@PathVariable UUID id) {
+        log.info("Начало выполнения заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.processOrder(id);
+        log.info("Заказ {} принят в работу исполнителем {}.", id, getCurrentUserId());
+        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
         messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
@@ -134,7 +151,10 @@ public class OrderController {
     @ApiResponse(description = "Заказ завершен", responseCode = "200")
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<OrderResponseDto> completeOrder(@PathVariable UUID id) {
+        log.info("Начало завершения заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.completeOrder(id);
+        log.info("Заказ {} завершен исполнителем {}.", id, getCurrentUserId());
+        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
         messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
@@ -154,7 +174,10 @@ public class OrderController {
     @ApiResponseConflict
     @ApiResponse(description = "Заказ отменен", responseCode = "200")
     public ResponseEntity<OrderResponseDto> rejectOrder(@PathVariable UUID id) {
+        log.info("Начало отмены заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.reject(id);
+        log.info("Заказ {} отменен заказчиком {}.", id, getCurrentUserId());
+        log.debug("[/topic/orders/rejecting] Начало отправки уведомления всем ");
         messagingTemplate.convertAndSend("/topic/orders/rejecting", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }

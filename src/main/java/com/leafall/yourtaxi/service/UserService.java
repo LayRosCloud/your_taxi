@@ -12,6 +12,7 @@ import com.leafall.yourtaxi.mapper.UserMapper;
 import com.leafall.yourtaxi.repository.CodeRepository;
 import com.leafall.yourtaxi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
     private final UserRepository repository;
     private final TokenService tokenService;
@@ -53,6 +55,7 @@ public class UserService {
     @Transactional
     public SuccessAuthDto signUp(SignUpDto dto) {
         if (!dto.getPassword().equals(dto.getRepeatPassword())) {
+            log.warn("У пользователя {} пароли не совпадают", dto.getEmail());
             throw new BadRequestException("user.error.password-dont-match");
         }
         var userOptional = repository.findByEmail(dto.getEmail());
@@ -60,8 +63,10 @@ public class UserService {
         if (userOptional.isPresent()) {
             user = userOptional.get();
             if (user.getIsActive() && user.getDeletedAt() == null) {
+                log.info("Пользователь {} существует, не удален и активирован при регистрации", dto.getEmail());
                 throw new ConflictException("user.error.has-email");
             }
+            log.info("Пользователь {} существует, но удален или активен", dto.getEmail());
         }
         if (user != null) {
             user.setDeletedAt(null);
