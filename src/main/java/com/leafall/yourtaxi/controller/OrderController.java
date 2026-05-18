@@ -3,6 +3,7 @@ package com.leafall.yourtaxi.controller;
 import com.leafall.yourtaxi.dto.order.OrderCostDto;
 import com.leafall.yourtaxi.dto.order.OrderCreateDto;
 import com.leafall.yourtaxi.dto.order.OrderResponseDto;
+import com.leafall.yourtaxi.dto.order.OrderTestDto;
 import com.leafall.yourtaxi.dto.point.PointCostDto;
 import com.leafall.yourtaxi.entity.OrderEntity;
 import com.leafall.yourtaxi.exception.annotation.*;
@@ -80,6 +81,23 @@ public class OrderController {
         log.info("Начало создания заказа: from={}, to={} currentUserId={}", dto.getFrom(), dto.getTo(), getCurrentUserId());
         var order = service.create(dto);
         log.info("Заказ создан: id={}", order.getId());
+        return new ResponseEntity<>(order, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/v1/orders/test")
+    @Operation(
+            summary = "Создать заказ",
+            description = "Создает новый заказ и сразу отправляет на событие `/user/queue/orders/new` о новом заказе"
+    )
+    @ApiResponseBadRequest
+    @ApiResponseUnauthorized
+    @ApiResponseNotFound
+    @ApiResponse(description = "Создать заказ", responseCode = "200")
+    public ResponseEntity<OrderResponseDto> test(@RequestBody @Valid OrderTestDto dto) {
+        log.info("Начало теста заказа: userId={}", dto.getId());
+        log.info("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", dto.getId());
+        var order = new OrderResponseDto();
+        messagingTemplate.convertAndSendToUser(dto.getId().toString(), "/queue/orders/change-status", order);
         return new ResponseEntity<>(order, HttpStatus.CREATED);
     }
 
