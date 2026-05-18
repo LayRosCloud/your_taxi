@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tags;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Users", description = "Пользователи")
+@Slf4j
 public class UserController {
     private final UserService service;
 
@@ -40,7 +42,9 @@ public class UserController {
     @ApiResponseNotFound
     @ApiResponse(responseCode = "200", description = "Успешная авторизация")
     public ResponseEntity<SuccessAuthDto> signIn(@RequestBody @Valid SignInDto dto) {
+        log.info("Начало авторизации пользователя: email=\"{}\"", dto.getEmail());
         var user = service.signIn(dto);
+        log.info("Пользователь \"{}\" успешно авторизован: id={}", dto.getEmail(), user.getUser().getId());
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
@@ -54,7 +58,9 @@ public class UserController {
     @ApiResponse(responseCode = "201", description = "Успешная регистрация")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<SuccessAuthDto> signUp(@RequestBody @Valid SignUpDto dto) {
+        log.info("Начало авторизации пользователя: email=\"{}\", fullname=\"{}\"", dto.getEmail(), dto.getFullName());
         var user = service.signUp(dto);
+        log.info("Пользователь \"{}\" успешно зарегистрирован: id={}", dto.getEmail(), user.getUser().getId());
         return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 

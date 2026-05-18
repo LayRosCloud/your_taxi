@@ -74,6 +74,7 @@ public class GeoService {
 
     public CoordinateResponseDto updateDriverLocation(UUID driverId, CoordinateSaveDto dto) {
         if (dto.getLongitude() > 180 || dto.getLongitude() < -180 || dto.getLatitude() > 90 || dto.getLatitude() < -90) {
+            log.warn("Пришли плохие координаты");
             throw new BadRequestException();
         }
         String locationKey = KEY + driverId;

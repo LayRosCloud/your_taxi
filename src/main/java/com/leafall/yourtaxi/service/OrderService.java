@@ -115,10 +115,12 @@ public class OrderService {
         statuses.add(OrderStatus.REJECTED);
         var existsOrder = orderRepository.findAllByUserAndStatusNotIn(user, statuses);
         if (existsOrder.size() > 0) {
+            log.warn("У пользователя {} есть 1 или более активных заказов. Нельзя создать новый", currentUserId);
             throw new ConflictException("order.error.exists-order");
         }
         var geos = geoService.getNearbyDrivers(dto.getFrom().getLongitude(), dto.getFrom().getLatitude(), dto.getRadius());
         if (geos.size() == 0) {
+            log.warn("В системе нет активных водителей. Невозможно создать заказ");
             throw new BadRequestException("order.error.not-valid");
         }
         var costAndDuration = getCostAndDuration(dto);
@@ -145,9 +147,9 @@ public class OrderService {
         order.setLongitude(dto.getFrom().getLongitude());
         order.setRadius(dto.getRadius());
         order.setIds(setIds);
-        System.out.println(order);
+
         var orderDto = orderMapper.mapToDto(newOrder);
-        System.out.println(firstId);
+        log.info("Заказ будет отправлен исполнителю {}", firstId);
         redisTemplate.opsForValue().set(String.format("%s%s", ORDERS_KEY, newOrder.getId().toString()), order, 30, TimeUnit.MINUTES);
         messagingTemplate.convertAndSendToUser(firstId, "/queue/orders/new", orderDto);
         return orderDto;
