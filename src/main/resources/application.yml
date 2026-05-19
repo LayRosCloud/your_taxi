@@ -28,10 +28,6 @@ spring:
     driver-class-name: org.postgresql.Driver
   liquibase:
     enabled: true
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
-    user: ${DB_USER}
-    password: ${DB_PASS}
-    driver-class-name: org.postgresql.Driver
     change-log: classpath:db/changelog/master.yml
   data:
     redis:

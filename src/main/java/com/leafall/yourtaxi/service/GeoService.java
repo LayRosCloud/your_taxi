@@ -61,13 +61,9 @@ public class GeoService {
             }
             @SuppressWarnings("unchecked")
             Map<String, Object> driverData = (Map<String, Object>) value;
-            var dto = new CoordinateResponseDto();
-            dto.setId(UUID.fromString(driverData.get("id").toString()));
-            dto.setLongitude(Double.parseDouble(driverData.get("lon").toString()));
-            dto.setLatitude(Double.parseDouble(driverData.get("lat").toString()));
-            dto.setAngle(Double.parseDouble(driverData.get("ang").toString()));
 
-            activeDrivers.add(dto);
+
+            activeDrivers.add(extractFromRedisCoordinates(driverData));
         }
         return activeDrivers;
     }
@@ -94,6 +90,25 @@ public class GeoService {
         result.setLongitude(dto.getLongitude());
         result.setId(driverId);
         return result;
+    }
+
+    public Optional<CoordinateResponseDto> getDriverLocation(UUID driverId) {
+        String locationKey = KEY + driverId;
+        var data = redisTemplate.opsForValue().get(locationKey);
+        if (data == null) {
+            return Optional.empty();
+        }
+        Map<String, Object> driverData = (Map<String, Object>) data;
+        return Optional.of(extractFromRedisCoordinates(driverData));
+    }
+
+    private CoordinateResponseDto extractFromRedisCoordinates(Map<String, Object> driverData) {
+        var dto = new CoordinateResponseDto();
+        dto.setId(UUID.fromString(driverData.get("id").toString()));
+        dto.setLongitude(Double.parseDouble(driverData.get("lon").toString()));
+        dto.setLatitude(Double.parseDouble(driverData.get("lat").toString()));
+        dto.setAngle(Double.parseDouble(driverData.get("ang").toString()));
+        return dto;
     }
 
     public PointOSRMResponse getDistance(PointCreateDto point1, PointCreateDto point2) {
