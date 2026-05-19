@@ -5,8 +5,10 @@ import com.leafall.yourtaxi.dto.point.PointCostDto;
 import com.leafall.yourtaxi.entity.OrderEntity;
 import com.leafall.yourtaxi.exception.annotation.*;
 import com.leafall.yourtaxi.service.OrderService;
+import com.leafall.yourtaxi.utils.pagination.PaginationCursor;
 import com.leafall.yourtaxi.utils.pagination.PaginationParams;
 import com.leafall.yourtaxi.utils.pagination.PaginationResponse;
+import com.leafall.yourtaxi.utils.request.OrderQueryDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,6 +48,20 @@ public class OrderController {
     @ApiResponse(description = "Получить активные заказы аккаунта", responseCode = "200")
     public ResponseEntity<OrderResponseWithDurationDto> findAllActiveOrders() {
         var orders = service.findActiveOrder();
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @GetMapping("/v1/orders")
+    @Operation(
+            summary = "Получить заказы",
+            description = "Получаем заказы по фильтрам"
+    )
+    @ApiResponseUnauthorized
+    @ApiResponseNotFound
+    @ApiResponse(description = "Получить заказы", responseCode = "200")
+    public ResponseEntity<PaginationResponse<OrderResponseDto>> findAll(@ParameterObject OrderQueryDto dto) {
+
+        var orders = service.findAll(dto);
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 
