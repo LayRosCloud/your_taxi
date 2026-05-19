@@ -7,6 +7,6 @@ import lombok.Data;
 @Data
 public class UserInfoResponseDto {
     @Schema(description = "Телефон", example = "+7(900)555-33-22")
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private String phone;
 }

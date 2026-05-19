@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class VerificationDto {
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private String email;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private String username;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private String code;
 }

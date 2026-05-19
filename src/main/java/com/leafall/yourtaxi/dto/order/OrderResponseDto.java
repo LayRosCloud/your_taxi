@@ -13,17 +13,17 @@ import java.util.UUID;
 
 @Data
 public class OrderResponseDto {
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private UUID id;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private UserResponseDto user;
     private TripResponseDto executor;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private OrderStatus status;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Double price;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Long createdAt;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private List<PointResponseDto> points;
 }

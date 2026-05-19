@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class TripEndDto {
     @Schema(description = "id машины", example = "1")
-    @Min(value = 0, message = "Id не может быть меньше 0")
-    @NotNull
+    @Min(value = 0, message = "{validation.id.min}")
+    @NotNull(message = "{validation.not-null}")
     private Long carId;
 }

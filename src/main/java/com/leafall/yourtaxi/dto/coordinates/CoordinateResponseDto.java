@@ -8,12 +8,12 @@ import java.util.UUID;
 
 @Data
 public class CoordinateResponseDto {
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private UUID id;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Double longitude;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Double latitude;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Double angle;
 }

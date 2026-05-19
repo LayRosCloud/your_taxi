@@ -18,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
+
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Users", description = "Пользователи")
@@ -58,10 +60,44 @@ public class UserController {
     @ApiResponse(responseCode = "201", description = "Успешная регистрация")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<SuccessAuthDto> signUp(@RequestBody @Valid SignUpDto dto) {
-        log.info("Начало авторизации пользователя: email=\"{}\", fullname=\"{}\"", dto.getEmail(), dto.getFullName());
+        log.info("Начало регистрации пользователя: email=\"{}\", fullname=\"{}\"", dto.getEmail(), dto.getFullName());
         var user = service.signUp(dto);
         log.info("Пользователь \"{}\" успешно зарегистрирован: id={}", dto.getEmail(), user.getUser().getId());
         return new ResponseEntity<>(user, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/v1/users/current")
+    @Operation(
+            summary = "Обновление пользователя",
+            description = "Обновление данных текущего пользователя"
+    )
+    @ApiResponseBadRequest
+    @ApiResponseConflict
+    @ApiResponseNotFound
+    @ApiResponseUnauthorized
+    @ApiResponse(responseCode = "200", description = "Успешное обновление")
+    public ResponseEntity<UserResponseDto> update(@RequestBody @Valid UserUpdateDto dto) {
+        log.info("Начало изменения пользователя: id={} email=\"{}\", fullname=\"{}\"", getCurrentUserId(), dto.getEmail(), dto.getFullName());
+        var user = service.update(dto);
+        log.info("Пользователь \"{}\" успешно изменен: id={}", user.getEmail(), user.getId());
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+    @PatchMapping("/v1/users/current/password")
+    @Operation(
+            summary = "Обновление пароля пользователя",
+            description = "Обновление пароля текущего пользователя"
+    )
+    @ApiResponseBadRequest
+    @ApiResponseConflict
+    @ApiResponseNotFound
+    @ApiResponseUnauthorized
+    @ApiResponse(responseCode = "200", description = "Успешное обновление")
+    public ResponseEntity<UserResponseDto> changePassword(@RequestBody @Valid UserChangePasswordDto dto) {
+        log.info("Начало изменения пароля пользователя: id={}", getCurrentUserId());
+        var user = service.changePassword(dto);
+        log.info("Пользователь \"{}\" успешно изменен пароль: id={}", user.getEmail(), user.getId());
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @PostMapping("/v1/users/verify")
@@ -89,7 +125,7 @@ public class UserController {
     public ResponseEntity<TokenHolder> refresh(@RequestBody @Valid RefreshDto dto) {
         log.info("Начало рефреша аккаунта {}", getCurrentUser());
         var user = service.refresh(dto);
-        log.info("Получена новая пара токенов для аккаунта {}", getCurrentUser());
+        log.info("Получена новая пара токенов для аккаунта {}", getCurrentUserId());
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 

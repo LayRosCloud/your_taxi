@@ -8,9 +8,9 @@ import lombok.Data;
 @Data
 @Builder
 public class SuccessAuthDto {
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private TokenHolder tokens;
 
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private UserResponseDto user;
 }

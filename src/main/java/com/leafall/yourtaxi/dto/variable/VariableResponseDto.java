@@ -13,20 +13,20 @@ public class VariableResponseDto {
             description = "Id переменной",
             example = "9f76f9e4-c370-4066-bc21-1fffe0d4adcf"
     )
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private UUID id;
     @Schema(
             description = "Ключ переменной (всегда уникальный)",
             example = "price"
     )
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private String key;
     @Schema(
             description = "Значение переменной. Может быть строкой, числом или булевым значением.",
             oneOf = {String.class, Double.class, Boolean.class},
             example = "2"
     )
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Object value;
     @Schema(
             description = "Описание переменной.",
@@ -38,6 +38,6 @@ public class VariableResponseDto {
             description = "Тип переменной.",
             example = "NUMBER"
     )
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private VariableType type;
 }
