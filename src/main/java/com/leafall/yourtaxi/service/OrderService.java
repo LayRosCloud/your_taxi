@@ -1,10 +1,8 @@
 package com.leafall.yourtaxi.service;
 
-import com.leafall.yourtaxi.dto.order.OrderCostDto;
-import com.leafall.yourtaxi.dto.order.OrderCreateDto;
-import com.leafall.yourtaxi.dto.order.OrderRedisWaitingDto;
-import com.leafall.yourtaxi.dto.order.OrderResponseDto;
+import com.leafall.yourtaxi.dto.order.*;
 import com.leafall.yourtaxi.dto.point.PointCostDto;
+import com.leafall.yourtaxi.dto.point.PointCreateDto;
 import com.leafall.yourtaxi.entity.OrderEntity;
 import com.leafall.yourtaxi.entity.PointEntity;
 import com.leafall.yourtaxi.entity.TripEntity;
@@ -51,7 +49,7 @@ public class OrderService {
     private static final String ORDERS_KEY = "orders:employees:";
 
     @Transactional(readOnly = true)
-    public OrderResponseDto findActiveOrder() {
+    public OrderResponseWithDurationDto findActiveOrder() {
         var currentUserId = SecurityUtils.getCurrentUserId();
         var user = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new NotFoundException("user.error.not-found"));
@@ -75,7 +73,35 @@ public class OrderService {
             }
             order = orders.get(0);
         }
-        return orderMapper.mapToDto(order);
+        var mappedOrder = orderMapper.mapToDtoDuration(order);
+        if (order.getExecutor() != null) {
+
+            var distance = geoService.getDriverLocation(order.getExecutor().getUser().getId());
+            if (distance.isPresent()) {
+                var pointOfUsers = order.getPoints().stream().filter(item -> item.getIndex() == 0).toList();
+                if (pointOfUsers.size() == 0) {
+                    log.info("Неправильно состояние заказа у пользователя {}", currentUserId);
+                    throw new NotFoundException("order.error.not-found");
+                }
+                var pointOfUser = pointOfUsers.get(0);
+                var dto = new PointCreateDto();
+                dto.setLongitude(pointOfUser.getPoint().getCoordinate().x);
+                dto.setLatitude(pointOfUser.getPoint().getCoordinate().y);
+
+                var dto1 = new PointCreateDto();
+                dto1.setLongitude(distance.get().getLongitude());
+                dto1.setLatitude(distance.get().getLatitude());
+                var distances = geoService.getDistance(dto, dto1);
+                if (distances.getRoutes().size() == 0) {
+                    log.error("Пришло 0 роутов! Невозможно посчитать стоимость!");
+                    throw new BadRequestException();
+                }
+                var route = distances.getRoutes().get(0);
+                mappedOrder.setDurationInSeconds(route.getDuration());
+            }
+
+        }
+        return mappedOrder;
     }
 
     public PointCostDto getCostAndDuration(OrderCostDto dto) {

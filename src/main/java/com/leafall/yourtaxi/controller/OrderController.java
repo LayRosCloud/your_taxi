@@ -1,9 +1,6 @@
 package com.leafall.yourtaxi.controller;
 
-import com.leafall.yourtaxi.dto.order.OrderCostDto;
-import com.leafall.yourtaxi.dto.order.OrderCreateDto;
-import com.leafall.yourtaxi.dto.order.OrderResponseDto;
-import com.leafall.yourtaxi.dto.order.OrderTestDto;
+import com.leafall.yourtaxi.dto.order.*;
 import com.leafall.yourtaxi.dto.point.PointCostDto;
 import com.leafall.yourtaxi.entity.OrderEntity;
 import com.leafall.yourtaxi.exception.annotation.*;
@@ -47,7 +44,7 @@ public class OrderController {
     @ApiResponseUnauthorized
     @ApiResponseNotFound
     @ApiResponse(description = "Получить активные заказы аккаунта", responseCode = "200")
-    public ResponseEntity<OrderResponseDto> findAllActiveOrders() {
+    public ResponseEntity<OrderResponseWithDurationDto> findAllActiveOrders() {
         var orders = service.findActiveOrder();
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
