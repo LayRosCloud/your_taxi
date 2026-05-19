@@ -5,6 +5,7 @@ import com.leafall.yourtaxi.entity.TripEntity;
 import com.leafall.yourtaxi.entity.UserEntity;
 import com.leafall.yourtaxi.entity.enums.OrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -13,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface OrderRepository extends JpaRepository<OrderEntity, UUID> {
+public interface OrderRepository extends JpaRepository<OrderEntity, UUID>, JpaSpecificationExecutor<OrderEntity> {
     List<OrderEntity> findAllByUserAndStatusNotIn(UserEntity user, Collection<OrderStatus> status);
     List<OrderEntity> findAllByExecutorAndStatusNotIn(TripEntity executor, Collection<OrderStatus> status);
 }

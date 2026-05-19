@@ -15,14 +15,21 @@ import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.mapper.OrderMapper;
 import com.leafall.yourtaxi.mapper.PointMapper;
 import com.leafall.yourtaxi.repository.*;
+import com.leafall.yourtaxi.repository.specification.OrderSpecification;
 import com.leafall.yourtaxi.utils.SecurityUtils;
+import com.leafall.yourtaxi.utils.pagination.PaginationCursor;
+import com.leafall.yourtaxi.utils.pagination.PaginationParams;
+import com.leafall.yourtaxi.utils.pagination.PaginationResponse;
+import com.leafall.yourtaxi.utils.request.OrderQueryDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -102,6 +109,20 @@ public class OrderService {
 
         }
         return mappedOrder;
+    }
+
+    @Transactional(readOnly = true)
+    public PaginationResponse<OrderResponseDto> findAll(OrderQueryDto query) {
+        var specification = OrderSpecification.hasStatus(query.getStatus())
+                .and(OrderSpecification.betweenPrice(query.getPriceFrom(), query.getPriceTo()))
+                .and(OrderSpecification.betweenDate(query.getDateFrom() != null ? Date.valueOf(query.getDateFrom()) : null, query.getDateTo() != null ?  Date.valueOf(query.getDateTo()) : null))
+                .and(OrderSpecification.hasClientId(query.getUserId()))
+                .and(OrderSpecification.hasDriver(query.getExecutorId()));
+        var params = new PaginationParams(query.getLimit(), query.getPage());
+        var pageable = params.getPageable(query.getIsAscending(), "createdAt");
+        var orders = orderRepository.findAll(specification, pageable);
+        var result = orders.stream().map(orderMapper::mapToDto).toList();
+        return new PaginationResponse<>(result, new PaginationCursor(params, orders.getTotalElements()));
     }
 
     public PointCostDto getCostAndDuration(OrderCostDto dto) {

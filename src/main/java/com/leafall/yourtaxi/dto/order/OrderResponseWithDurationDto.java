@@ -26,7 +26,6 @@ public class OrderResponseWithDurationDto {
     private Long createdAt;
     @NotNull(message = "{validation.not-null}")
     private List<PointResponseDto> points;
-    @Schema(name = "Длительность", example = "23")
     @NotNull(message = "{validation.not-null}")
     public Double durationInSeconds;
 }
