@@ -5,12 +5,12 @@ import lombok.Data;
 
 @Data
 public class PointResponseDto {
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Integer index;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private String name;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Double longitude;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Double latitude;
 }

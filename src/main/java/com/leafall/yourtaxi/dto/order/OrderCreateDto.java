@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class OrderCreateDto extends OrderCostDto {
-    @NotNull
-    @Min(value = 0)
+    @NotNull(message = "{validation.not-null}")
+    @Min(value = 0, message = "{validation.radius.min}")
     private Double radius;
 }

@@ -6,10 +6,10 @@ import lombok.RequiredArgsConstructor;
 
 @Data
 public class PointCostDto {
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Double price;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Double durationInSeconds;
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Boolean isBigDistance;
 }

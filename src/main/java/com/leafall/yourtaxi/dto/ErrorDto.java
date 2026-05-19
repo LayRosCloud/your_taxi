@@ -11,12 +11,12 @@ import java.util.List;
 @AllArgsConstructor
 public class ErrorDto {
     @Schema(title = "Статус", description = "Статус ответа", example = "401")
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Integer status;
     @Schema(title = "Ошибки", description = "Все ошибки",
             example = "[\"Unauthorized\",\"Bad Request\",\"Forbidden\"]"
             )
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private List<String> errors;
 
 }

@@ -11,11 +11,11 @@ import java.util.UUID;
 @Data
 public class VerifyEmailDto {
     @Schema(description = "Id", example = "9f76f9e4-c370-4066-bc21-1fffe0d4adcf")
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private UUID id;
     @Schema(description = "Код", example = "789213")
-    @NotNull
-    @NotBlank(message = "Код не может быть пустым")
-    @Length(min = 6, max = 6, message = "Код может быть 6 символов")
+    @NotNull(message = "{validation.not-null}")
+    @NotBlank(message = "{validation.code.not-blank}")
+    @Length(min = 6, max = 6, message = "{validation.code.length}")
     private String code;
 }

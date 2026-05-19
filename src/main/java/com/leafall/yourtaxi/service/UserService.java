@@ -4,12 +4,14 @@ import com.leafall.yourtaxi.dto.token.TokenHolder;
 import com.leafall.yourtaxi.dto.user.*;
 import com.leafall.yourtaxi.entity.CodeEntity;
 import com.leafall.yourtaxi.entity.UserEntity;
+import com.leafall.yourtaxi.entity.UserInfoEntity;
 import com.leafall.yourtaxi.entity.enums.UserRole;
 import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.exception.ConflictException;
 import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.mapper.UserMapper;
 import com.leafall.yourtaxi.repository.CodeRepository;
+import com.leafall.yourtaxi.repository.UserInfoRepository;
 import com.leafall.yourtaxi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,7 @@ public class UserService {
     private final TokenService tokenService;
     private final EncodingService encodingService;
     private final EmailService emailService;
+    private final UserInfoRepository userInfoRepository;
     private final CodeRepository codeRepository;
     private final UserMapper mapper;
 
@@ -38,7 +41,7 @@ public class UserService {
 
     @Transactional
     public SuccessAuthDto signIn(SignInDto dto) {
-        var user = repository.findByEmail(dto.getEmail())
+        var user = repository.findByEmail(dto.getEmail().toLowerCase())
                 .orElseThrow(() -> new BadRequestException("user.error.bad-email-or-pass"));
 
         if (user.getDeletedAt() != null) {
@@ -58,7 +61,7 @@ public class UserService {
             log.warn("У пользователя {} пароли не совпадают", dto.getEmail());
             throw new BadRequestException("user.error.password-dont-match");
         }
-        var userOptional = repository.findByEmail(dto.getEmail());
+        var userOptional = repository.findByEmail(dto.getEmail().toLowerCase());
         UserEntity user = null;
         if (userOptional.isPresent()) {
             user = userOptional.get();
@@ -74,12 +77,53 @@ public class UserService {
             user.setFullName(dto.getFullName());
         } else {
             user = mapper.mapToEntity(dto);
+            user.setEmail(dto.getEmail().toLowerCase());
             user.setPassword(encodingService.encode(dto.getPassword()));
             user.setRole(UserRole.USER);
             user.setIsActive(false);
         }
         user = repository.save(user);
         return sendIfNotActiveAccount(user);
+    }
+
+    @Transactional
+    public UserResponseDto update(UserUpdateDto dto) {
+        var user = repository.findById(getCurrentUserId())
+                .orElseThrow(() -> new NotFoundException("user.error.not-found"));
+        if (!user.getEmail().equalsIgnoreCase(dto.getEmail())) {
+            var existUser = repository.findByEmail(dto.getEmail().toLowerCase()).isPresent();
+            if (existUser) {
+                throw new ConflictException("user.error.has-email");
+            }
+        }
+        user.setEmail(dto.getEmail().toLowerCase());
+        user.setFullName(dto.getFullName());
+        if (user.getRole() == UserRole.EMPLOYEE) {
+            UserInfoEntity info;
+            if (user.getInfo() == null) {
+                info = new UserInfoEntity();
+                info.setUser(user);
+            } else {
+                info = user.getInfo();
+            }
+            info.setPhone(dto.getPhone());
+            userInfoRepository.save(info);
+        }
+        var updatedUser = repository.save(user);
+        return mapper.mapToDto(updatedUser);
+    }
+
+    @Transactional
+    public UserResponseDto changePassword(UserChangePasswordDto dto) {
+        var user = repository.findById(getCurrentUserId())
+                .orElseThrow(() -> new NotFoundException("user.error.not-found"));
+        if (!dto.getPassword().equals(dto.getRepeatPassword())) {
+            log.warn("У пользователя {} пароли не совпадают", user.getEmail());
+            throw new BadRequestException("user.error.password-dont-match");
+        }
+        user.setPassword(encodingService.encode(dto.getPassword()));
+        var saved = repository.save(user);
+        return mapper.mapToDto(saved);
     }
 
     @Transactional

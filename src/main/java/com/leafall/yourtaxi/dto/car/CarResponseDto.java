@@ -7,22 +7,22 @@ import lombok.Data;
 @Data
 public class CarResponseDto {
     @Schema(description = "Id машины", example = "1")
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Long id;
 
     @Schema(description = "Номер машины", example = "T222ZZ11 22")
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private String number;
 
     @Schema(description = "Марка машины", example = "Honda")
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private String mark;
 
     @Schema(description = "Цвет машины", example = "Белый")
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private String color;
 
     @Schema(description = "Дата создания машины", example = "1766091600000")
-    @NotNull
+    @NotNull(message = "{validation.not-null}")
     private Long createdAt;
 }
