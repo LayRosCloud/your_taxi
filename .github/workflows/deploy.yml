@@ -50,7 +50,7 @@ jobs:
     steps:
       - name: Stop current services
         run: docker compose -f compose.yaml down
-        working-directory: cd /home/runner/projects/your_taxi
+        working-directory: /home/runner/projects/your_taxi
   deploy:
     runs-on: self-hosted
     needs: [prepare-environment]
@@ -59,7 +59,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: /home/runner/projects/your_taxi
-      - name:
+      - name: Checkout file
         run: |
           # Создаем папку maps, если её нет
           mkdir -p /home/runner/projects/your_taxi/maps
