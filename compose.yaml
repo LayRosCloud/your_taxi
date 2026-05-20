@@ -5,7 +5,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./maps:/data
+      - /home/runner/maps_data:/data
     command: >
       sh -c "if [ ! -f /data/combined.osrm ]; then echo 'Starting map processing...'; osrm-extract -p /opt/car.lua /data/combined.osm.pbf && osrm-partition /data/combined.osrm && osrm-customize /data/combined.osrm; else echo 'Using cached map data.'; fi; osrm-routed --algorithm mld /data/combined.osrm"
     restart: unless-stopped
