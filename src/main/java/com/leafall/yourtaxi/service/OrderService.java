@@ -117,7 +117,9 @@ public class OrderService {
                 .and(OrderSpecification.betweenPrice(query.getPriceFrom(), query.getPriceTo()))
                 .and(OrderSpecification.betweenDate(query.getDateFrom() != null ? Date.valueOf(query.getDateFrom()) : null, query.getDateTo() != null ?  Date.valueOf(query.getDateTo()) : null))
                 .and(OrderSpecification.hasClientId(query.getUserId()))
-                .and(OrderSpecification.hasDriver(query.getExecutorId()));
+                .and(OrderSpecification.hasDriver(query.getExecutorId()))
+                .and(OrderSpecification.hasIsBigDistance(query.getIsBigDistance()))
+                .and(OrderSpecification.hasPaymentType(query.getPaymentType()));
         var params = new PaginationParams(query.getLimit(), query.getPage());
         var pageable = params.getPageable(query.getIsAscending(), "createdAt");
         var orders = orderRepository.findAll(specification, pageable);
@@ -176,6 +178,8 @@ public class OrderService {
 
         var toSave = new OrderEntity();
         toSave.setPrice(costAndDuration.getPrice());
+        toSave.setIsBigDistance(costAndDuration.getIsBigDistance());
+        toSave.setPaymentType(dto.getPaymentType());
         toSave.setUser(user);
         toSave.setStatus(OrderStatus.NEW);
         var newOrder = orderRepository.save(toSave);
@@ -186,21 +190,30 @@ public class OrderService {
         var points = pointRepository.saveAll(pointsToSave);
         log.debug("Точки созданы для заказа {}", newOrder.getId());
         newOrder.setPoints(points);
-        var firstId = geos.getFirst().getId().toString();
-        var setIds = new HashSet<String>(1);
-        setIds.add(firstId);
 
-        var order = new OrderRedisWaitingDto();
-        order.setId(newOrder.getId());
-        order.setLatitude(dto.getFrom().getLatitude());
-        order.setLongitude(dto.getFrom().getLongitude());
-        order.setRadius(dto.getRadius());
-        order.setIds(setIds);
 
         var orderDto = orderMapper.mapToDto(newOrder);
-        log.info("Заказ будет отправлен исполнителю {}", firstId);
-        redisTemplate.opsForValue().set(String.format("%s%s", ORDERS_KEY, newOrder.getId().toString()), order, 30, TimeUnit.MINUTES);
-        messagingTemplate.convertAndSendToUser(firstId, "/queue/orders/new", orderDto);
+        if (toSave.getIsBigDistance()) {
+            var dispatcher = userRepository.findByRole(UserRole.DISPATCHER)
+                    .orElseThrow(() -> new NotFoundException("user.error.not-found"));
+            log.info("Заказ будет отправлен диспетчеру {}", dispatcher.getId());
+            messagingTemplate.convertAndSendToUser(dispatcher.getId().toString(), "/queue/orders/new", orderDto);
+        } else {
+            var firstId = geos.getFirst().getId().toString();
+            var setIds = new HashSet<String>(1);
+            setIds.add(firstId);
+
+            var order = new OrderRedisWaitingDto();
+            order.setId(newOrder.getId());
+            order.setLatitude(dto.getFrom().getLatitude());
+            order.setLongitude(dto.getFrom().getLongitude());
+            order.setRadius(dto.getRadius());
+            order.setIds(setIds);
+            log.info("Заказ будет отправлен исполнителю {}", firstId);
+            redisTemplate.opsForValue().set(String.format("%s%s", ORDERS_KEY, newOrder.getId().toString()), order, 30, TimeUnit.MINUTES);
+            messagingTemplate.convertAndSendToUser(firstId, "/queue/orders/new", orderDto);
+        }
+
         return orderDto;
     }
 
@@ -212,8 +225,8 @@ public class OrderService {
                     log.info("Заказ {} не найден", id);
                     return new NotFoundException("order.error.not-found");
                 });
-        if (order.getStatus() != OrderStatus.NEW) {
-            log.info("Заказ {} уже имеет не новый статус. Невозможно принять", id);
+        if (order.getStatus() != OrderStatus.NEW || order.getIsBigDistance()) {
+            log.info("Заказ {} уже имеет не новый статус. Невозможно принять или большую дистанцию", id);
             throw new ConflictException("order.error.not-valid");
         }
         order.setStatus(OrderStatus.ACCEPT);

@@ -1,5 +1,6 @@
 package com.leafall.yourtaxi.utils.request;
 
+import com.leafall.yourtaxi.entity.enums.OrderPaymentType;
 import com.leafall.yourtaxi.entity.enums.OrderStatus;
 import lombok.Data;
 
@@ -15,6 +16,8 @@ public class OrderQueryDto {
     private String dateFrom;
     private String dateTo;
     private Boolean isAscending = false;
+    private Boolean isBigDistance;
+    private OrderPaymentType paymentType;
     private Integer limit = 10;
     private Integer page = 0;
 }

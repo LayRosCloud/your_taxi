@@ -1,6 +1,7 @@
 package com.leafall.yourtaxi.repository.specification;
 
 import com.leafall.yourtaxi.entity.OrderEntity;
+import com.leafall.yourtaxi.entity.enums.OrderPaymentType;
 import com.leafall.yourtaxi.entity.enums.OrderStatus;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,6 +25,24 @@ public class OrderSpecification {
                 return null;
             }
             return cb.equal(root.join("executor").join("user").get("id"), userId);
+        };
+    }
+
+    public static Specification<OrderEntity> hasIsBigDistance(Boolean isBigDistance) {
+        return (root, query, cb) -> {
+            if (isBigDistance == null) {
+                return null;
+            }
+            return cb.equal(root.get("is_big_distance"), isBigDistance);
+        };
+    }
+
+    public static Specification<OrderEntity> hasPaymentType(OrderPaymentType paymentType) {
+        return (root, query, cb) -> {
+            if (paymentType == null) {
+                return null;
+            }
+            return cb.equal(root.get("payment_type"), paymentType);
         };
     }
 

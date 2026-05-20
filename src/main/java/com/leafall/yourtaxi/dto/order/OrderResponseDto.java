@@ -4,6 +4,7 @@ import com.leafall.yourtaxi.dto.car.CarResponseDto;
 import com.leafall.yourtaxi.dto.point.PointResponseDto;
 import com.leafall.yourtaxi.dto.trip.TripResponseDto;
 import com.leafall.yourtaxi.dto.user.UserResponseDto;
+import com.leafall.yourtaxi.entity.enums.OrderPaymentType;
 import com.leafall.yourtaxi.entity.enums.OrderStatus;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -24,6 +25,10 @@ public class OrderResponseDto {
     private Double price;
     @NotNull(message = "{validation.not-null}")
     private Long createdAt;
+    @NotNull(message = "{validation.not-null}")
+    private Boolean isBigDistance;
+    @NotNull(message = "{validation.not-null}")
+    private OrderPaymentType paymentType;
     @NotNull(message = "{validation.not-null}")
     private List<PointResponseDto> points;
 }

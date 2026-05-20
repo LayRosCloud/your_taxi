@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 014-add-column-to-orders
+      changes:
+        - sql:
+            "CREATE TYPE orders_payment_type_enum AS ENUM ('CASH', 'CARD')"
+        - addColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: is_big_distance
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payment_type
+                  type: orders_payment_type_enum
+                  defaultValue: CARD
+                  constraints:
+                    nullable: false
