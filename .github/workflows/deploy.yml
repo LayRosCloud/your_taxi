@@ -57,8 +57,6 @@ jobs:
     steps:
       - name: Git checkout
         uses: actions/checkout@v4
-        with:
-          path: /home/runner/projects/your_taxi
       - name: Checkout file
         run: |
           # Создаем папку maps, если её нет
