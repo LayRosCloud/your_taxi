@@ -59,17 +59,11 @@ jobs:
         uses: actions/checkout@v4
       - name: Checkout file
         run: |
-          mkdir -p /home/runner/maps_data
-          
           if [ ! -f /home/runner/maps_data/combined.osm.pbf ]; then
             echo "ERROR: combined.osm.pbf not found!"
             echo "Please upload the file to the server or add a download step here."
             exit 1
           fi
-          
-          chmod -R 755 /home/runner/maps_data
-          chown -R runner:runner /home/runner/maps_data
-
       - name: Docker build
         run: docker compose -f compose.yaml up -d --build
         working-directory: /home/runner/actions-runner/_work/your_taxi/your_taxi
