@@ -48,20 +48,35 @@ jobs:
     runs-on: self-hosted
     needs: [build]
     steps:
-      - name: Cd to folder
-        run: cd /home/runner/projects/your_taxi
-      - name: Docker stop
+      - name: Stop current services
         run: docker compose -f compose.yaml down
+        working-directory: cd /home/runner/projects/your_taxi
   deploy:
     runs-on: self-hosted
     needs: [prepare-environment]
     steps:
-      - name: Cd to folder
-        run: cd /home/runner/projects/your_taxi
       - name: Git checkout
         uses: actions/checkout@v4
+        with:
+          path: /home/runner/projects/your_taxi
+      - name:
+        run: |
+          # Создаем папку maps, если её нет
+          mkdir -p /home/runner/projects/your_taxi/maps
+          
+          # ПРОВЕРКА: Есть ли файл combined.osm.pbf?
+          if [ ! -f /home/runner/projects/your_taxi/maps/combined.osm.pbf ]; then
+            echo "ERROR: combined.osm.pbf not found!"
+            echo "Please upload the file to the server or add a download step here."
+            exit 1
+          fi
+          # Исправляем права доступа, чтобы Docker мог читать файл
+          chmod -R 755 /home/runner/projects/your_taxi/maps
+          chown -R runner:runner /home/runner/projects/your_taxi/maps # Замените runner на пользователя, от которого работает self-hosted runner, если нужно
+
       - name: Docker build
         run: docker compose -f compose.yaml up -d --build
+        working-directory: /home/runner/projects/your_taxi
 
 
 
