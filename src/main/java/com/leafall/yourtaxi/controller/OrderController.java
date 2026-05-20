@@ -59,8 +59,8 @@ public class OrderController {
     @ApiResponseUnauthorized
     @ApiResponseNotFound
     @ApiResponse(description = "Получить заказы", responseCode = "200")
+    @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<PaginationResponse<OrderResponseDto>> findAll(@ParameterObject OrderQueryDto dto) {
-
         var orders = service.findAll(dto);
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }

@@ -9,6 +9,7 @@ import org.locationtech.jts.geom.Geometry;
 @Entity
 @Table(name = "points")
 @Data
+@ToString
 public class PointEntity {
 
     @EmbeddedId

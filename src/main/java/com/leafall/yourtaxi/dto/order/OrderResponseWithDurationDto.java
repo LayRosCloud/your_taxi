@@ -3,6 +3,7 @@ package com.leafall.yourtaxi.dto.order;
 import com.leafall.yourtaxi.dto.point.PointResponseDto;
 import com.leafall.yourtaxi.dto.trip.TripResponseDto;
 import com.leafall.yourtaxi.dto.user.UserResponseDto;
+import com.leafall.yourtaxi.entity.enums.OrderPaymentType;
 import com.leafall.yourtaxi.entity.enums.OrderStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -28,4 +29,8 @@ public class OrderResponseWithDurationDto {
     private List<PointResponseDto> points;
     @NotNull(message = "{validation.not-null}")
     public Double durationInSeconds;
+    @NotNull(message = "{validation.not-null}")
+    private Boolean isBigDistance;
+    @NotNull(message = "{validation.not-null}")
+    private OrderPaymentType paymentType;
 }

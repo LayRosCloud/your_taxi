@@ -6,7 +6,7 @@ import com.leafall.yourtaxi.entity.OrderEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {PointMapper.class})
+@Mapper(componentModel = "spring", uses = {PointMapper.class, TripMapper.class, UserMapper.class})
 public interface OrderMapper {
     OrderResponseDto mapToDto(OrderEntity entity);
     @Mapping(target = "durationInSeconds", ignore = true)

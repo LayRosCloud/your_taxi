@@ -6,6 +6,7 @@ import com.leafall.yourtaxi.entity.enums.UserRole;
 import com.leafall.yourtaxi.entity.listener.TimestampListener;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 import org.hibernate.annotations.JdbcType;
 import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
 
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Table(name = "users")
 @Data
 @EntityListeners({TimestampListener.class})
+@ToString
 public class UserEntity implements CreatedAtTimestampAware, UpdatedAtTimestampAware {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

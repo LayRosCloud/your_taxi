@@ -2,6 +2,7 @@ package com.leafall.yourtaxi.entity;
 
 import com.leafall.yourtaxi.entity.aware.CreatedAtTimestampAware;
 import com.leafall.yourtaxi.entity.aware.UpdatedAtTimestampAware;
+import com.leafall.yourtaxi.entity.enums.OrderPaymentType;
 import com.leafall.yourtaxi.entity.enums.OrderStatus;
 import com.leafall.yourtaxi.entity.listener.TimestampListener;
 import jakarta.persistence.*;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @Table(name = "orders")
 @Data
 @EntityListeners({TimestampListener.class})
+@ToString
 public class OrderEntity implements CreatedAtTimestampAware, UpdatedAtTimestampAware {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -45,7 +47,14 @@ public class OrderEntity implements CreatedAtTimestampAware, UpdatedAtTimestampA
     @Column(name = "updated_at", nullable = false)
     private Long updatedAt;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "order")
-    @ToString.Exclude
+    @Column(name = "is_big_distance", nullable = false)
+    private Boolean isBigDistance;
+
+    @Column(name = "payment_type", nullable = false, columnDefinition = "orders_payment_type_enum")
+    @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    private OrderPaymentType paymentType;
+
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "order")
     private List<PointEntity> points;
 }
