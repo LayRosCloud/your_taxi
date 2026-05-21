@@ -8,12 +8,15 @@ import com.leafall.yourtaxi.exception.annotation.ApiResponseForbidden;
 import com.leafall.yourtaxi.exception.annotation.ApiResponseNotFound;
 import com.leafall.yourtaxi.exception.annotation.ApiResponseUnauthorized;
 import com.leafall.yourtaxi.service.TripService;
+import com.leafall.yourtaxi.utils.pagination.PaginationResponse;
+import com.leafall.yourtaxi.utils.request.TripRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,6 +49,23 @@ public class TripController {
         var trip = tripService.findYourActiveTrip();
         log.info("Сессия получена id={}", trip.getId());
         return new ResponseEntity<>(trip, HttpStatus.OK);
+    }
+
+    @GetMapping("/v1/trips")
+    @Operation(
+            summary = "Получить сессии",
+            description = "Получить сессии, для приняти заказов"
+    )
+    @ApiResponseBadRequest
+    @ApiResponseUnauthorized
+    @ApiResponseNotFound
+    @ApiResponse(description = "Получены сессии", responseCode = "200")
+    @PreAuthorize("hasAuthority('DISPATCHER')")
+    public ResponseEntity<PaginationResponse<TripResponseDto>> findAll(@ParameterObject TripRequestDto dto) {
+        log.info("Получение машин {}", dto);
+        var trips = tripService.findAll(dto);
+        log.info("Получено {} машин", trips.cursor().getTotal());
+        return new ResponseEntity<>(trips, HttpStatus.OK);
     }
 
     @PostMapping("/v1/trips/start")
