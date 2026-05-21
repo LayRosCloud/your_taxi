@@ -10,11 +10,18 @@ import com.leafall.yourtaxi.mapper.TripMapper;
 import com.leafall.yourtaxi.repository.CarRepository;
 import com.leafall.yourtaxi.repository.TripRepository;
 import com.leafall.yourtaxi.repository.UserRepository;
+import com.leafall.yourtaxi.repository.specification.TripSpecification;
 import com.leafall.yourtaxi.utils.SecurityUtils;
 import com.leafall.yourtaxi.utils.TimeUtils;
+import com.leafall.yourtaxi.utils.pagination.PaginationCursor;
+import com.leafall.yourtaxi.utils.pagination.PaginationParams;
+import com.leafall.yourtaxi.utils.pagination.PaginationResponse;
+import com.leafall.yourtaxi.utils.request.TripRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.Date;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +40,18 @@ public class TripService {
         var trip = tripRepository.findByUserAndEndAtIsNull(user)
                 .orElseThrow(() -> new NotFoundException("trip.error.not-found"));
         return tripMapper.mapToDto(trip);
+    }
+
+    @Transactional(readOnly = true)
+    public PaginationResponse<TripResponseDto> findAll(TripRequestDto query) {
+        var tripSpecification = TripSpecification.betweenDates(query.getDateFrom() != null ? Date.valueOf(query.getDateFrom()) : null, query.getDateTo() != null ?  Date.valueOf(query.getDateTo()) : null)
+                .and(TripSpecification.search(query.getSearch()))
+                .and(TripSpecification.equalsEmployeeId(query.getEmployeeId()));
+        var params = new PaginationParams(query.getLimit(), query.getPage());
+        var pagination = params.getPageable(false, "createdAt");
+        var trips = tripRepository.findAll(tripSpecification, pagination);
+        var dtoResult = trips.stream().map(tripMapper::mapToDto).toList();
+        return new PaginationResponse<>(dtoResult, new PaginationCursor(params, trips.getTotalElements()));
     }
 
     @Transactional
