@@ -9,6 +9,7 @@ import com.leafall.yourtaxi.exception.annotation.ApiResponseUnauthorized;
 import com.leafall.yourtaxi.service.EmployeeService;
 import com.leafall.yourtaxi.utils.pagination.PaginationParams;
 import com.leafall.yourtaxi.utils.pagination.PaginationResponse;
+import com.leafall.yourtaxi.utils.request.EmployeeRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,9 +40,9 @@ public class EmployeeController {
     @ApiResponseUnauthorized
     @ApiResponse(responseCode = "200", description = "Получены все сотрудники")
     @PreAuthorize("hasAuthority('DISPATCHER')")
-    public ResponseEntity<PaginationResponse<UserResponseDto>> findAll(@ParameterObject PaginationParams pagination) {
-        log.info("Начало получения сотрудников: {}", pagination);
-        var users = service.findAllEmployees(pagination);
+    public ResponseEntity<PaginationResponse<UserResponseDto>> findAll(@ParameterObject EmployeeRequestDto dto) {
+        log.info("Начало получения сотрудников: {}", dto);
+        var users = service.findAllEmployees(dto);
         log.info("Получено {} сотрудников", users.cursor().getTotal());
         return new ResponseEntity<>(users, HttpStatus.OK);
     }

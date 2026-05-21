@@ -9,10 +9,12 @@ import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.mapper.UserMapper;
 import com.leafall.yourtaxi.repository.UserRepository;
+import com.leafall.yourtaxi.repository.specification.UserSpecification;
 import com.leafall.yourtaxi.utils.TimeUtils;
 import com.leafall.yourtaxi.utils.pagination.PaginationCursor;
 import com.leafall.yourtaxi.utils.pagination.PaginationParams;
 import com.leafall.yourtaxi.utils.pagination.PaginationResponse;
+import com.leafall.yourtaxi.utils.request.EmployeeRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +29,13 @@ public class EmployeeService {
     private final UserMapper mapper;
 
     @Transactional(readOnly = true)
-    public PaginationResponse<UserResponseDto> findAllEmployees(PaginationParams params) {
+    public PaginationResponse<UserResponseDto> findAllEmployees(EmployeeRequestDto dto) {
+        var params = new PaginationParams(dto.getLimit(), dto.getPage());
+        var specification = UserSpecification.findBySearch(dto.getSearch())
+                .and(UserSpecification.isNullDeletedAt(true))
+                .and(UserSpecification.equalsRole(UserRole.EMPLOYEE));
         var pageable = params.getPageable(false, "createdAt");
-        var users = userRepository.findAllByRoleAndDeletedAtIsNull(UserRole.EMPLOYEE, pageable);
+        var users = userRepository.findAll(specification, pageable);
         var responseList = users.stream().map(mapper::mapToDto).toList();
         var cursor = new PaginationCursor(params, users.getTotalElements());
         return new PaginationResponse<>(responseList, cursor);
