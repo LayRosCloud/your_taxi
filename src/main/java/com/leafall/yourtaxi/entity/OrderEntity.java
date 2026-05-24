@@ -29,6 +29,13 @@ public class OrderEntity implements CreatedAtTimestampAware, UpdatedAtTimestampA
     @ManyToOne(fetch = FetchType.EAGER)
     private UserEntity user;
 
+    @JoinColumn(name = "planned_driver_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private UserEntity plannerDriver;
+
+    @Column(name = "scheduled_start_time")
+    private Long scheduledStartTime;
+
     @JoinColumn(name = "executor_id", nullable = true)
     @ManyToOne(fetch = FetchType.EAGER)
     private TripEntity executor;

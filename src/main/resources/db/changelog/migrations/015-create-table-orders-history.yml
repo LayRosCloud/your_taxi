@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 015-create-table-orders-history
+      changes:
+        - createTable:
+            tableName: orders_history
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: order_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    references: orders(id) ON DELETE CASCADE ON UPDATE CASCADE
+                    foreignKeyName: fk_orders_history
+              - column:
+                  name: status
+                  type: orders_status_enum
+                  constraints:
+                    nullable: false
+              - column:
+                  name: point
+                  type: GEOMETRY
+                  constraints:
+                    nullable: true
+              - column:
+                  name: message
+                  type: VARCHAR(1000)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_at
+                  type: BIGINT
+                  constraints:
+                    nullable: false
