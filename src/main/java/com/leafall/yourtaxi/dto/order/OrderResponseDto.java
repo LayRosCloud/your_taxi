@@ -29,6 +29,8 @@ public class OrderResponseDto {
     private Boolean isBigDistance;
     @NotNull(message = "{validation.not-null}")
     private OrderPaymentType paymentType;
+    private UserResponseDto plannerDriver;
+    private Long scheduledStartTime;
     @NotNull(message = "{validation.not-null}")
     private List<PointResponseDto> points;
 }
