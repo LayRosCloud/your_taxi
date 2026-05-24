@@ -116,6 +116,25 @@ public class OrderController {
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
+    @PatchMapping("/v1/orders/driver")
+    @Operation(
+            summary = "Установить планируемого водителя на заказ и время",
+            description = "Если заказ длинный, то можно установить на него водителя и время, когда будет исполняться заказ"
+    )
+    @ApiResponseBadRequest
+    @ApiResponseUnauthorized
+    @ApiResponseNotFound
+    @ApiResponse(description = "Водитель установлен", responseCode = "200")
+    @PreAuthorize("hasAuthority('DISPATCHER')")
+    public ResponseEntity<OrderResponseDto> setDriverAndDate(@RequestBody @Valid OrderSetDriverAndDate dto) {
+        log.info("Начало установки нового водителя и даты: id={}, currentUserId={}", dto, getCurrentUserId());
+        var order = service.setDateAndDriver(dto);
+        log.info("Заказу установлен планируемый водитель");
+        log.debug("[/queue/orders/change-status] Начало отправки уведомления пользователю {}", order.getUser().getId().toString());
+        messagingTemplate.convertAndSendToUser(order.getUser().getId().toString(), "/queue/orders/change-status", order);
+        return new ResponseEntity<>(order, HttpStatus.OK);
+    }
+
     @PatchMapping("/v1/orders/{id}/expect")
     @Operation(
             summary = "Поставить на ожидание от исполнителя",

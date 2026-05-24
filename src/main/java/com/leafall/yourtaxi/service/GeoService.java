@@ -7,6 +7,9 @@ import com.leafall.yourtaxi.dto.point.PointOSRMResponse;
 import com.leafall.yourtaxi.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.connection.RedisGeoCommands;
@@ -25,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 public class GeoService {
     private static final String KEY = "taxi:coords:";
     private static final String GEO_KEY = "taxi:geo_index";
-
+    private final GeometryFactory geometryFactory;
     private final RedisTemplate<String, Object> redisTemplate;
     @Value("${services.osrm.host}")
     private String host;
@@ -119,5 +122,12 @@ public class GeoService {
             throw new BadRequestException();
         }
         return point.getBody();
+    }
+
+    public Geometry mapFromDtoToPoint(CoordinateResponseDto dto) {
+        if (dto == null) {
+            return null;
+        }
+        return geometryFactory.createPoint(new Coordinate(dto.getLongitude(), dto.getLatitude()));
     }
 }

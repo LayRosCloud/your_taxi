@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 016-create-column-driver-and-start-drive
+      changes:
+        - addColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: planned_driver_id
+                  type: UUID
+                  constraints:
+                    nullable: true
+                    referencedTableName: users
+                    referencedColumnNames: id
+                    foreignKeyName: fk_planner_driver_orders
+              - column:
+                  name: scheduled_start_time
+                  type: BIGINT
+                  constraints:
+                    nullable: true

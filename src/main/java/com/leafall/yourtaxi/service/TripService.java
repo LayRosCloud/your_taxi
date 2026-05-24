@@ -8,6 +8,7 @@ import com.leafall.yourtaxi.exception.ConflictException;
 import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.mapper.TripMapper;
 import com.leafall.yourtaxi.repository.CarRepository;
+import com.leafall.yourtaxi.repository.OrderRepository;
 import com.leafall.yourtaxi.repository.TripRepository;
 import com.leafall.yourtaxi.repository.UserRepository;
 import com.leafall.yourtaxi.repository.specification.TripSpecification;
@@ -30,6 +31,7 @@ public class TripService {
     private final TripRepository tripRepository;
     private final CarRepository carRepository;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
     private final TripMapper tripMapper;
 
     @Transactional(readOnly = true)
@@ -68,6 +70,14 @@ public class TripService {
         trip.setCar(car);
         trip.setUser(user);
         var newTrip = tripRepository.save(trip);
+        var orders = orderRepository.findAllByPlannerDriverAndScheduledStartTimeBetween(user, TimeUtils.getStartOfDayUTC(), TimeUtils.getEndOfDayUTC());
+        if (orders.size() > 0) {
+            for (var order: orders) {
+                order.setExecutor(trip);
+            }
+            orderRepository.saveAll(orders);
+        }
+
         return tripMapper.mapToDto(newTrip);
     }
 
