@@ -16,4 +16,5 @@ public class CoordinateResponseDto {
     private Double latitude;
     @NotNull(message = "{validation.not-null}")
     private Double angle;
+    private String status;
 }

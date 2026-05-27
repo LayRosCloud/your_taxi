@@ -31,6 +31,9 @@
 		<mapstruct.version>1.5.5.Final</mapstruct.version>
 		<jsonwebtoken.version>0.11.5</jsonwebtoken.version>
 		<springdoc.version>2.7.0</springdoc.version>
+		<maven.compiler.source>25</maven.compiler.source>
+		<javafaker.version>1.0.2</javafaker.version>
+		<maven.compiler.target>25</maven.compiler.target>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -53,6 +56,11 @@
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
 			<version>${jsonwebtoken.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.javafaker</groupId>
+			<artifactId>javafaker</artifactId>
+			<version>${javafaker.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>

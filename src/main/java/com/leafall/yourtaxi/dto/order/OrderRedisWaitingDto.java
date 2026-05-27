@@ -10,6 +10,5 @@ public class OrderRedisWaitingDto {
     private UUID id;
     private Double longitude;
     private Double latitude;
-    private Double radius;
     private Set<String> ids;
 }

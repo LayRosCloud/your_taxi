@@ -40,7 +40,8 @@ public class TestContainersInitializer implements ApplicationContextInitializer<
                 "spring.datasource.username=" + POSTGRES_USER,
                 "spring.datasource.password=" + POSTGRES_PASSWORD,
                 "REDIS_HOST=" + REDIS.getHost(),
-                "REDIS_PORT=" + REDIS.getMappedPort(REDIS_PORT)
+                "REDIS_PORT=" + REDIS.getMappedPort(REDIS_PORT),
+                "REDIS_PASS=" + REDIS_PASSWORD
         ).applyTo(applicationContext);
     }
 

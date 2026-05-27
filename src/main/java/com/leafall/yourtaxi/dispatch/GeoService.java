@@ -1,10 +1,12 @@
-package com.leafall.yourtaxi.service;
+package com.leafall.yourtaxi.dispatch;
 
 import com.leafall.yourtaxi.dto.coordinates.CoordinateResponseDto;
 import com.leafall.yourtaxi.dto.coordinates.CoordinateSaveDto;
 import com.leafall.yourtaxi.dto.point.PointCreateDto;
 import com.leafall.yourtaxi.dto.point.PointOSRMResponse;
 import com.leafall.yourtaxi.exception.BadRequestException;
+import com.leafall.yourtaxi.repository.OrderRepository;
+import com.leafall.yourtaxi.utils.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
@@ -15,7 +17,6 @@ import org.springframework.data.geo.*;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.domain.geo.GeoReference;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -26,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 @Slf4j
 public class GeoService {
-    private static final String KEY = "taxi:coords:";
+    public static final String DRIVER_COORDS_PREFIX = "taxi:coords:";
     private static final String GEO_KEY = "taxi:geo_index";
     private final GeometryFactory geometryFactory;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -51,22 +52,13 @@ public class GeoService {
             return Collections.emptyList();
         }
 
-        var driversIds = results.getContent().stream().map(result -> result.getContent().getName()).toList();
-        var keys = driversIds.stream().map(id -> KEY + id).toList();
-        var rawValues = redisTemplate.opsForValue().multiGet(keys);
+        var driversIds = results.getContent().stream().map(result -> result.getContent().getName().toString()).toList();
 
         List<CoordinateResponseDto> activeDrivers = new ArrayList<>(driversIds.size());
 
-        for (int i = 0; i < keys.size(); i++) {
-            Object value = rawValues.get(i);
-            if (value == null) {
-                continue;
-            }
-            @SuppressWarnings("unchecked")
-            Map<String, Object> driverData = (Map<String, Object>) value;
-
-
-            activeDrivers.add(extractFromRedisCoordinates(driverData));
+        for (String idStr : driversIds) {
+            Optional<CoordinateResponseDto> driverOpt = getDriverLocation(UUID.fromString(idStr));
+            driverOpt.ifPresent(activeDrivers::add);
         }
         return activeDrivers;
     }
@@ -76,16 +68,15 @@ public class GeoService {
             log.warn("Пришли плохие координаты");
             throw new BadRequestException();
         }
-        String locationKey = KEY + driverId;
-
-        Map<String, Object> locationData = new HashMap<>();
-        locationData.put("id", driverId);
-        locationData.put("lat", dto.getLatitude());
-        locationData.put("lon", dto.getLongitude());
-        locationData.put("ang", dto.getAngle());
-        locationData.put("ts", System.currentTimeMillis());
-        redisTemplate.opsForValue().set(locationKey, locationData, 10, TimeUnit.SECONDS);
-
+        String locationKey = DRIVER_COORDS_PREFIX + driverId;
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", driverId.toString());
+        map.put("lat", dto.getLatitude());
+        map.put("lon", dto.getLongitude());
+        map.put("ang", dto.getAngle());
+        map.put("ts", TimeUtils.getCurrentTimeFromUTC());
+        redisTemplate.opsForHash().putAll(locationKey, map);
+        redisTemplate.expire(locationKey, 10, TimeUnit.SECONDS);
         redisTemplate.opsForGeo().add(GEO_KEY, new Point(dto.getLongitude(), dto.getLatitude()), driverId);
         var result = new CoordinateResponseDto();
         result.setAngle(dto.getAngle());
@@ -96,21 +87,27 @@ public class GeoService {
     }
 
     public Optional<CoordinateResponseDto> getDriverLocation(UUID driverId) {
-        String locationKey = KEY + driverId;
-        var data = redisTemplate.opsForValue().get(locationKey);
-        if (data == null) {
+        String locationKey = DRIVER_COORDS_PREFIX + driverId;
+
+        Map<Object, Object> entries = redisTemplate.opsForHash().entries(locationKey);
+
+        if (entries.isEmpty()) {
             return Optional.empty();
         }
-        Map<String, Object> driverData = (Map<String, Object>) data;
-        return Optional.of(extractFromRedisCoordinates(driverData));
+
+        return Optional.of(extractFromRedisCoordinates(entries));
     }
 
-    private CoordinateResponseDto extractFromRedisCoordinates(Map<String, Object> driverData) {
+    private CoordinateResponseDto extractFromRedisCoordinates(Map<Object, Object> driverData) {
         var dto = new CoordinateResponseDto();
         dto.setId(UUID.fromString(driverData.get("id").toString()));
         dto.setLongitude(Double.parseDouble(driverData.get("lon").toString()));
         dto.setLatitude(Double.parseDouble(driverData.get("lat").toString()));
         dto.setAngle(Double.parseDouble(driverData.get("ang").toString()));
+        Object statusObj = driverData.get("status");
+        if (statusObj != null) {
+            dto.setStatus(statusObj.toString());
+        }
         return dto;
     }
 
