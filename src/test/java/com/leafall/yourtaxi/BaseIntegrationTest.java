@@ -1,6 +1,7 @@
 package com.leafall.yourtaxi;
 
 import com.leafall.yourtaxi.core.db.DbCleaner;
+import com.leafall.yourtaxi.core.db.RedisCleaner;
 import com.leafall.yourtaxi.initializer.TestContainersInitializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,5 +25,7 @@ public class BaseIntegrationTest {
 
     @Autowired
     protected DbCleaner dbCleaner;
+    @Autowired
+    protected RedisCleaner redisCleaner;
 
 }

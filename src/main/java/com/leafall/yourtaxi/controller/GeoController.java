@@ -3,7 +3,7 @@ package com.leafall.yourtaxi.controller;
 import com.leafall.yourtaxi.dto.coordinates.CoordinateResponseDto;
 import com.leafall.yourtaxi.dto.coordinates.CoordinateSaveDto;
 import com.leafall.yourtaxi.exception.annotation.ApiResponseUnauthorized;
-import com.leafall.yourtaxi.service.GeoService;
+import com.leafall.yourtaxi.dispatch.GeoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController

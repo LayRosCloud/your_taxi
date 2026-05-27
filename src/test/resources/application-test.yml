@@ -1,4 +1,7 @@
 spring:
+  output:
+    ansi:
+      enabled: always
   springdoc:
     webjars:
       prefix: ""
@@ -53,4 +56,8 @@ frontend:
 services:
   osrm:
     host: ${OSRM_HOST:http://localhost:5000}
+logging:
+  charset:
+    console: UTF-8
+    file: UTF-8
 

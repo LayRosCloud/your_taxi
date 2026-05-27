@@ -1,5 +1,6 @@
 package com.leafall.yourtaxi.service;
 
+import com.leafall.yourtaxi.dispatch.DriverDispatchService;
 import com.leafall.yourtaxi.dto.trip.TripEndDto;
 import com.leafall.yourtaxi.dto.trip.TripResponseDto;
 import com.leafall.yourtaxi.dto.trip.TripStartDto;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +34,7 @@ public class TripService {
     private final CarRepository carRepository;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
+    private final DriverDispatchService dispatchService;
     private final TripMapper tripMapper;
 
     @Transactional(readOnly = true)
@@ -57,8 +60,7 @@ public class TripService {
     }
 
     @Transactional
-    public TripResponseDto startTrip(TripStartDto dto) {
-        var userId = SecurityUtils.getCurrentUserId();
+    public TripResponseDto startTrip(TripStartDto dto, UUID userId) {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("user.error.not-found"));
         var car = carRepository.findById(dto.getCarId())
@@ -77,13 +79,12 @@ public class TripService {
             }
             orderRepository.saveAll(orders);
         }
-
+        dispatchService.addToQueue(userId);
         return tripMapper.mapToDto(newTrip);
     }
 
     @Transactional
-    public TripResponseDto stopTrip(TripEndDto dto) {
-        var userId = SecurityUtils.getCurrentUserId();
+    public TripResponseDto stopTrip(TripEndDto dto, UUID userId) {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("user.error.not-found"));
         var car = carRepository.findById(dto.getCarId())
@@ -92,6 +93,7 @@ public class TripService {
                 .orElseThrow(() -> new NotFoundException("trip.error.not-found"));
         trip.setEndAt(TimeUtils.getCurrentTimeFromUTC());
         var savedTrip = tripRepository.save(trip);
+        dispatchService.removeFromQueue(userId);
         return tripMapper.mapToDto(savedTrip);
     }
 

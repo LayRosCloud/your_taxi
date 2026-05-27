@@ -82,7 +82,7 @@ public class TripController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<TripResponseDto> startTrip(@RequestBody @Valid TripStartDto dto) {
         log.info("Начало создание сессии для пользователя {} с машиной {}", getCurrentUserId(), dto.getCarId());
-        var trip = tripService.startTrip(dto);
+        var trip = tripService.startTrip(dto, getCurrentUserId());
         log.info("Сессия создана для пользователя {} её id={}", getCurrentUserId(), trip.getId());
         return new ResponseEntity<>(trip, HttpStatus.CREATED);
     }
@@ -100,7 +100,7 @@ public class TripController {
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<TripResponseDto> stopTrip(@RequestBody @Valid TripEndDto dto) {
         log.info("Начало остановки сессии для пользователя {} с машиной {}", getCurrentUserId(), dto.getCarId());
-        var trip = tripService.stopTrip(dto);
+        var trip = tripService.stopTrip(dto, getCurrentUserId());
         log.info("Сессия остановлена для пользователя {} её id={}", getCurrentUserId(), trip.getId());
         return new ResponseEntity<>(trip, HttpStatus.OK);
     }
