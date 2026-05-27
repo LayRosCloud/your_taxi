@@ -167,6 +167,7 @@ public class OrderControllerTest extends BaseIntegrationTest {
         assertEquals(response.getStatus(), OrderStatus.ACCEPT);
         assertEquals(response.getExecutor().getUser().getId(), employeeUser.getId());
         assertEquals("BUSY", redisTemplate.opsForHash().get(DRIVER_COORDS_PREFIX + employeeUser.getId(), "status"));
+        assertEquals(0, redisTemplate.opsForList().size("taxi:queue:available"));
     }
 
     @Test
@@ -202,5 +203,6 @@ public class OrderControllerTest extends BaseIntegrationTest {
         assertEquals(response.getStatus(), OrderStatus.COMPLETED);
         assertEquals(response.getExecutor().getUser().getId(), employeeUser.getId());
         assertEquals("FREE", redisTemplate.opsForHash().get(DRIVER_COORDS_PREFIX + employeeUser.getId(), "status"));
+        assertEquals(1, redisTemplate.opsForList().size("taxi:queue:available"));
     }
 }
