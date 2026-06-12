@@ -197,6 +197,12 @@ public class OrderController {
         service.cancel(id);
     }
 
+    @PostMapping("/v1/orders/{id}/cancel")
+    public ResponseEntity<OrderResponseDto> cancel(@PathVariable UUID id) {
+        var result = service.cancel(id);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
     @PostMapping("/v1/orders/{id}/reject")
     @Operation(
             summary = "Отменить встречу от заказчика",

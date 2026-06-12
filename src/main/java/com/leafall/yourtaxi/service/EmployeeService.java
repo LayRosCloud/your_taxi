@@ -2,14 +2,18 @@ package com.leafall.yourtaxi.service;
 
 import com.leafall.yourtaxi.dto.employee.EmployeeCreateDto;
 import com.leafall.yourtaxi.dto.employee.EmployeeUpdateDto;
+import com.leafall.yourtaxi.dto.employee.NewPasswordDto;
 import com.leafall.yourtaxi.dto.user.UserResponseDto;
 import com.leafall.yourtaxi.entity.UserInfoEntity;
 import com.leafall.yourtaxi.entity.enums.UserRole;
 import com.leafall.yourtaxi.exception.BadRequestException;
+import com.leafall.yourtaxi.exception.ConflictException;
 import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.mapper.UserMapper;
+import com.leafall.yourtaxi.repository.UserInfoRepository;
 import com.leafall.yourtaxi.repository.UserRepository;
 import com.leafall.yourtaxi.repository.specification.UserSpecification;
+import com.leafall.yourtaxi.utils.SecurityUtils;
 import com.leafall.yourtaxi.utils.TimeUtils;
 import com.leafall.yourtaxi.utils.pagination.PaginationCursor;
 import com.leafall.yourtaxi.utils.pagination.PaginationParams;
@@ -25,7 +29,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class EmployeeService {
     private final UserRepository userRepository;
+    private final UserInfoRepository userInfoRepository;
     private final EncodingService encodingService;
+    private final EmailService emailService;
     private final UserMapper mapper;
 
     @Transactional(readOnly = true)
@@ -53,19 +59,26 @@ public class EmployeeService {
 
     @Transactional
     public UserResponseDto create(EmployeeCreateDto dto) {
-        if (!dto.getPassword().equals(dto.getRepeatPassword())) {
-            throw new BadRequestException("user.error.password-dont-match");
-        }
         var employee = mapper.mapToEntity(dto);
         employee.setRole(UserRole.EMPLOYEE);
-        employee.setPassword(encodingService.encode(dto.getPassword()));
-        var userInfo = new UserInfoEntity();
-        userInfo.setPhone(dto.getPhone());
-        userInfo.setUser(employee);
+        var password = SecurityUtils.generateString(8);
+        employee.setPassword(encodingService.encode(password));
         employee.setIsActive(true);
-        employee.setInfo(userInfo);
+        if (dto.getPhone() != null) {
+            var userInfo = new UserInfoEntity();
+            userInfo.setUser(employee);
+            userInfo.setPhone(dto.getPhone());
+            employee.setInfo(userInfo);
+            if (userInfoRepository.findByPhone(dto.getPhone()).isPresent()){
+                throw new ConflictException("base.error.conflict");
+            }
+        }
         var user = userRepository.save(employee);
-
+        var passwordDto = new NewPasswordDto();
+        passwordDto.setEmail(dto.getEmail());
+        passwordDto.setUsername(dto.getFullName());
+        passwordDto.setPassword(password);
+        emailService.sendNewPasswordForEmployee(passwordDto);
         return mapper.mapToDto(user);
     }
 

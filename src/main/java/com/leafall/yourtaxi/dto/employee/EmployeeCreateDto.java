@@ -21,18 +21,6 @@ public class EmployeeCreateDto {
     @Email(message = "{validation.email.invalid}")
     private String email;
 
-    @Schema(description = "Пароль", example = "12345678")
-    @NotNull(message = "{validation.not-null}")
-    @NotBlank(message = "{validation.password.not-blank}")
-    @Length(min = 6, max = 40, message = "{validation.password.size}")
-    private String password;
-
-    @Schema(description = "повторите пароль", example = "12345678")
-    @NotNull(message = "{validation.not-null}")
-    @NotBlank(message = "{validation.password.not-blank}")
-    @Length(min = 6, max = 40, message = "{validation.password.size}")
-    private String repeatPassword;
-
     @Schema(description = "Телефон", example = "+7(000)888-99-33")
     @NotNull(message = "{validation.not-null}")
     @NotBlank(message = "{validation.phone.not-blank}")

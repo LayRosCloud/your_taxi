@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.geo.Point;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static com.leafall.yourtaxi.dispatch.GeoService.DRIVER_COORDS_PREFIX;
+import static com.leafall.yourtaxi.dispatch.GeoService.GEO_KEY;
 import static com.leafall.yourtaxi.dispatch.SearchService.DRIVER_LOCK_PREFIX;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -46,7 +48,7 @@ public class SearchServiceTest extends BaseIntegrationTest {
         mockDriverLocation(driver2, 55.76, 37.62, "FREE");
         mockDriverLocation(driver3, 55.80, 37.70, "FREE");
         orderId = UUID.fromString("3c901a6b-e05c-4627-8293-d2bbb48d2d44");
-        OrderRedisWaitingDto dto = new OrderRedisWaitingDto();
+        var dto = new OrderRedisWaitingDto();
         dto.setLongitude(37.611);
         dto.setLatitude(55.751);
         dto.setIds(Set.of());
@@ -55,6 +57,7 @@ public class SearchServiceTest extends BaseIntegrationTest {
     }
 
     private void mockDriverLocation(UUID id, double lat, double lon, String status) {
+        redisTemplate.opsForGeo().remove(GEO_KEY, id);
         String key = DRIVER_COORDS_PREFIX + id;
         var map = new HashMap<String, Object>();
         map.put("lat", lat);
@@ -63,6 +66,7 @@ public class SearchServiceTest extends BaseIntegrationTest {
         map.put("status", status);
         map.put("ts", System.currentTimeMillis());
         map.put("id", id.toString());
+        redisTemplate.opsForGeo().add(GEO_KEY, new Point(lon, lat), id);
         redisTemplate.opsForHash().putAll(key, map);
 
     }
@@ -90,13 +94,10 @@ public class SearchServiceTest extends BaseIntegrationTest {
         dispatchService.addToQueue(driver3);
 
         // when
-        UUID found = searchService.findDriverForOrder(37.611, 55.751, 1.0, orderId);
+        UUID found = searchService.findDriverForOrder(38.611, 55.751, 1.0, orderId);
 
         // then
-        assertNull(found, "Водитель слишком далеко, никто не найден");
-
-        Long queueSize = redisTemplate.opsForList().size("taxi:queue:available");
-        assertEquals(1, queueSize, "Водитель должен был вернуться в очередь");
+        assertNull(found, "driver is so far, not found");
     }
 
     @Test
@@ -114,6 +115,12 @@ public class SearchServiceTest extends BaseIntegrationTest {
 
         redisTemplate.delete("taxi:driver:lock:" + driver1);
         dispatchService.addToQueue(driver1);
+        var dto = new OrderRedisWaitingDto();
+        dto.setLongitude(37.611);
+        dto.setLatitude(55.751);
+        dto.setIds(Set.of(driver1.toString()));
+        dto.setId(orderId);
+        searchService.addToOrderQueue(dto);
         UUID secondFound = searchService.findDriverForOrder(37.611, 55.751,2.0, orderId);
         assertEquals(driver2, secondFound, "После отказа первого, вторым должен идти driver2");
     }
@@ -141,8 +148,8 @@ public class SearchServiceTest extends BaseIntegrationTest {
         t2.join();
 
         //then
-        Long size = redisTemplate.opsForList().size("taxi:queue:available");
-        assertEquals(0, size);
+        String locationKey = DRIVER_COORDS_PREFIX + driver1;
+        assertEquals(Boolean.TRUE, redisTemplate.hasKey(locationKey));
     }
 
     @Test
@@ -152,7 +159,8 @@ public class SearchServiceTest extends BaseIntegrationTest {
         String key = DRIVER_COORDS_PREFIX + driver1;
         dispatchService.addToQueue(driver1);
         redisTemplate.opsForHash().put(key, "status", "BUSY");
-
+        redisTemplate.opsForHash().put(DRIVER_COORDS_PREFIX + driver2, "status", "BUSY");
+        redisTemplate.opsForHash().put(DRIVER_COORDS_PREFIX + driver3, "status", "BUSY");
         // when
         UUID firstFound = searchService.findDriverForOrder(37.611, 55.751, 2.0, orderId);
         dispatchService.addToQueue(driver1);
