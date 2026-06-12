@@ -228,44 +228,44 @@ public class OrderService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void cancel(UUID id) {
+    public OrderResponseDto cancel(UUID id) {
         var order = searchService.getOrderFromRedis(id);
         if (order == null) {
             log.warn("Заказ {} из Redis не найден", id);
             throw new NotFoundException("order.error.not-found");
         }
-        var driverForOrder = searchService.findDriverForOrder(order.getLongitude(), order.getLatitude(), 5, id);
-        var currentUser = geoService.getDriverLocation(getCurrentUserId()).orElse(null);
-        dispatchService.addToQueue(getCurrentUserId());
         var findedOrder = orderRepository.findById(order.getId())
                 .orElseThrow(() -> new NotFoundException("order.error.not-found"));
+        if (findedOrder.getStatus() != OrderStatus.NEW) {
+            log.info("Заказ {} уже имеет статус {}. Невозможно найти для него исполнителя", findedOrder.getId(), findedOrder.getStatus());
+            throw new ConflictException("order.error.not-valid");
+        }
+        var driverForOrder = searchService.findDriverForOrder(order.getLongitude(), order.getLatitude(), 5, id);
+
+        var currentUser = geoService.getDriverLocation(getCurrentUserId()).orElse(null);
+
+        dispatchService.addToQueue(getCurrentUserId());
+
         createOrderHistory(findedOrder, String.format("[Система подбора] Заказ отклонен исполнителем \"%s\". Начинаю искать нового",
                 getCurrentUserId()), geoService.mapFromDtoToPoint(currentUser));
+
         var orderDto = orderMapper.mapToDto(findedOrder);
 
         if (driverForOrder != null) {
             order.getIds().add(driverForOrder.toString());
             searchService.addToOrderQueue(order);
-
-            if (findedOrder.getStatus() != OrderStatus.NEW) {
-                log.info("Заказ {} уже имеет статус {}. Невозможно найти для него исполнителя", findedOrder.getId(), findedOrder.getStatus());
-                throw new ConflictException("order.error.not-valid");
-            }
             log.info("Заказу {} будет отправлен новый исполнитель {}", findedOrder.getId(), driverForOrder);
             messagingTemplate.convertAndSendToUser(driverForOrder.toString(), "/queue/orders/new", orderDto);
             createOrderHistory(findedOrder, String.format("[Система подбора] Найден новый исполнитель %s. Начинаю отправку",
                     driverForOrder), geoService.mapFromDtoToPoint(currentUser));
         } else {
-            if (findedOrder.getStatus() != OrderStatus.NEW) {
-                log.info("Заказ {} уже имеет статус {}. Невозможно отменить заказ", findedOrder.getId(), findedOrder.getStatus());
-                throw new ConflictException("order.error.not-valid");
-            }
             findedOrder.setStatus(OrderStatus.REJECTED);
             var updatedOrder = orderRepository.save(findedOrder);
             orderDto = orderMapper.mapToDto(updatedOrder);
             messagingTemplate.convertAndSendToUser(findedOrder.getUser().getId().toString(), "/topic/orders/reject", orderDto);
             createOrderHistory(findedOrder, "[Система подбора] Исполнителей не было найдено для заказа. Произвожу отмену", geoService.mapFromDtoToPoint(currentUser));
         }
+        return orderDto;
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class GeoService {
     public static final String DRIVER_COORDS_PREFIX = "taxi:coords:";
-    private static final String GEO_KEY = "taxi:geo_index";
+    public static final String GEO_KEY = "taxi:geo_index";
     private final GeometryFactory geometryFactory;
     private final RedisTemplate<String, Object> redisTemplate;
     @Value("${services.osrm.host}")

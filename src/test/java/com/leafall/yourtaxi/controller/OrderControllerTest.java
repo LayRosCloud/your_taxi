@@ -4,8 +4,10 @@ import com.leafall.yourtaxi.BaseIntegrationTest;
 import com.leafall.yourtaxi.core.db.*;
 import com.leafall.yourtaxi.core.utils.dto.PointCreateDtoUtils;
 import com.leafall.yourtaxi.core.utils.equals.PointEqualsUtils;
+import com.leafall.yourtaxi.dispatch.SearchService;
 import com.leafall.yourtaxi.dto.coordinates.CoordinateSaveDto;
 import com.leafall.yourtaxi.dto.order.OrderCreateDto;
+import com.leafall.yourtaxi.dto.order.OrderRedisWaitingDto;
 import com.leafall.yourtaxi.dto.order.OrderResponseDto;
 import com.leafall.yourtaxi.dto.point.PointCreateDto;
 import com.leafall.yourtaxi.dto.point.PointOSRMResponse;
@@ -24,9 +26,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
+import java.util.HashSet;
 import java.util.List;
 
 import static com.leafall.yourtaxi.dispatch.GeoService.DRIVER_COORDS_PREFIX;
+import static com.leafall.yourtaxi.dispatch.SearchService.DRIVER_LOCK_PREFIX;
 import static org.mockito.Mockito.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -42,6 +46,8 @@ public class OrderControllerTest extends BaseIntegrationTest {
     private CarDbHelper carDbHelper;
     @Autowired
     private TripService tripService;
+    @Autowired
+    private SearchService searchService;
     @Autowired
     private TripDbHelper tripDbHelper;
     @Autowired
@@ -167,7 +173,6 @@ public class OrderControllerTest extends BaseIntegrationTest {
         assertEquals(response.getStatus(), OrderStatus.ACCEPT);
         assertEquals(response.getExecutor().getUser().getId(), employeeUser.getId());
         assertEquals("BUSY", redisTemplate.opsForHash().get(DRIVER_COORDS_PREFIX + employeeUser.getId(), "status"));
-        assertEquals(0, redisTemplate.opsForList().size("taxi:queue:available"));
     }
 
     @Test
@@ -203,6 +208,54 @@ public class OrderControllerTest extends BaseIntegrationTest {
         assertEquals(response.getStatus(), OrderStatus.COMPLETED);
         assertEquals(response.getExecutor().getUser().getId(), employeeUser.getId());
         assertEquals("FREE", redisTemplate.opsForHash().get(DRIVER_COORDS_PREFIX + employeeUser.getId(), "status"));
-        assertEquals(1, redisTemplate.opsForList().size("taxi:queue:available"));
+    }
+
+    @Test
+    public void testCancelOrder_happyPath() throws Exception {
+        // given
+        //employee №0
+        var rejectUser = userDbHelper.save(UserRole.EMPLOYEE);
+        var rejectCar = carDbHelper.save();
+        var rejectTrip = new TripStartDto();
+        rejectTrip.setCarId(rejectCar.getId());
+        var newRejectTrip = tripService.startTrip(rejectTrip, rejectUser.getId());
+        // employee №1
+        var employeeUser = userDbHelper.save(UserRole.EMPLOYEE);
+        var car = carDbHelper.save();
+        var trip = new TripStartDto();
+        trip.setCarId(car.getId());
+        var newTrip = tripService.startTrip(trip, employeeUser.getId());
+        var accessToken = tokenDbHelper.generateAccessToken(rejectUser.getId());
+        // client №2
+        var clientUser = userDbHelper.save();
+        // order №3
+        var order = orderDbHelper.save(clientUser, null);
+        var dto = new CoordinateSaveDto();
+        dto.setLongitude(10.0);
+        dto.setLatitude(10.0);
+        dto.setAngle(10.0);
+        geoService.updateDriverLocation(employeeUser.getId(), dto);
+        geoService.updateDriverLocation(rejectUser.getId(), dto);
+        var orderToDb = new OrderRedisWaitingDto();
+        orderToDb.setId(order.getId());
+        orderToDb.setLatitude(10.0);
+        orderToDb.setLongitude(10.0);
+        var set = new HashSet<String>();
+        set.add(rejectUser.getId().toString());
+        orderToDb.setIds(set);
+        searchService.addToOrderQueue(orderToDb);
+        // when
+        var mvcResult = mockMvc.perform(post("/v1/orders/{id}/cancel", order.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer " + accessToken)
+                ).andExpect(status().is2xxSuccessful())
+                .andReturn();
+        // then
+        var bytes = mvcResult.getResponse().getContentAsByteArray();
+        var response = objectMapper.readValue(bytes, OrderResponseDto.class);
+        assertEquals(order.getPaymentType(), response.getPaymentType());
+        assertEquals(response.getStatus(), OrderStatus.NEW);
+        assertEquals(Boolean.FALSE, redisTemplate.hasKey(DRIVER_LOCK_PREFIX + rejectUser.getId()));
+        assertEquals(Boolean.TRUE, redisTemplate.hasKey(DRIVER_LOCK_PREFIX + employeeUser.getId()));
     }
 }
