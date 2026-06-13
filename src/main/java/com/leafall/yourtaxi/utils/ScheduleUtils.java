@@ -32,7 +32,6 @@ public class ScheduleUtils {
     public void scheduleHandleOrder() {
         long now = System.currentTimeMillis();
         try {
-            assignmentService.createOffer(UUID.fromString(""), UUID.fromString(""));
             var correlationId = UUID.randomUUID();
             MDC.put(HEADER_CORRELATION_LOG_ID, correlationId.toString());
             log.debug(
