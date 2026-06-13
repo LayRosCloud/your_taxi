@@ -14,3 +14,4 @@ databaseChangeLog:
                     referencedTableName: users
                     referencedColumnNames: id
                     foreignKeyName: fk_cars_users
+                    deleteCascade: true
