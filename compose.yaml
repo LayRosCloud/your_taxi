@@ -126,6 +126,8 @@ services:
 volumes:
   pg_data:
   pg_redis:
+  grafana_data:
+  loki_data:
 
 networks:
   app_network:
