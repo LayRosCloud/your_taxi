@@ -3,23 +3,24 @@ package com.leafall.yourtaxi.controller;
 import com.leafall.yourtaxi.BaseIntegrationTest;
 import com.leafall.yourtaxi.dto.user.SignUpDto;
 import com.leafall.yourtaxi.dto.user.SuccessAuthDto;
+import com.leafall.yourtaxi.dto.user.VerificationDto;
 import com.leafall.yourtaxi.entity.enums.UserRole;
 import com.leafall.yourtaxi.service.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UserControllerTest extends BaseIntegrationTest {
 
-    @MockitoSpyBean
+    @MockitoBean
     private EmailService emailService;
     @BeforeEach
     public void setUp() {
