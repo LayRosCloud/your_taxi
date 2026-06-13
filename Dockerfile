@@ -18,10 +18,10 @@ FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
 COPY --from=builder /app/target/*.jar app.jar
 
 RUN chown -R appuser:appgroup /app
+RUN mkdir -p /logs && chmod 777 /logs
 
 USER appuser
 
