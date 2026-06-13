@@ -29,6 +29,7 @@ import static com.leafall.yourtaxi.dispatch.SearchService.ORDERS_KEY;
 public class OrderAssignmentService {
 
     public static final String ACTIVE_OFFERS_KEY = "taxi:offers:active";
+    public static final Double MAX_RADIUS_SEARCH = 10.0;
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final GeoService geoService;
@@ -82,7 +83,7 @@ public class OrderAssignmentService {
                 return null;
             }
 
-            var newDriverId = findDriverForOrder(order.getLongitude(), order.getLatitude(), 5, order.getId());
+            var newDriverId = findDriverForOrder(order.getLongitude(), order.getLatitude(), MAX_RADIUS_SEARCH, order.getId());
             order.getIds().add(newDriverId.toString());
             redisTemplate.opsForValue().set(String.format("%s%s", ORDERS_KEY, order.getId().toString()), order, 30, TimeUnit.MINUTES);
             createOffer(newDriverId, orderId);
@@ -96,27 +97,18 @@ public class OrderAssignmentService {
     public UUID findDriverForOrder(double longitude, double latitude, double radius, UUID orderId) {
         final var maxRetries = 10;
         int attempts = 0;
-        Circle circle = new Circle(
-                new Point(longitude, latitude),
-                new Distance(radius, Metrics.KILOMETERS)
-        );
-        var results = redisTemplate.opsForGeo()
-                .radius(GEO_KEY, circle, RedisGeoCommands.GeoRadiusCommandArgs.newGeoRadiusArgs()
-                        .includeDistance()
-                        .includeCoordinates()
-                        .sortAscending()
-                        .limit(20));
-        if (results == null || results.getContent().isEmpty()) {
+        var results = geoService.getNearbyDrivers(longitude, latitude, radius);
+        if (results == null || results.isEmpty()) {
             log.warn("Нет водителей в радиусе {} км", radius);
             return null;
         }
         var order = getOrderFromRedis(orderId);
 
-        for (var result : results.getContent()) {
+        for (var result : results) {
             if (attempts >= maxRetries) {
                 break;
             }
-            String driverIdStr = result.getContent().getName().toString();
+            String driverIdStr = result.getId().toString();
             var driverId = UUID.fromString(driverIdStr);
             if (order != null && order.getIds().contains(driverIdStr)) {
                 log.info("Driver {} has already been in this order, skip", driverIdStr);
@@ -139,10 +131,9 @@ public class OrderAssignmentService {
             Boolean isLocked = redisTemplate.opsForValue()
                     .setIfAbsent(DRIVER_LOCK_PREFIX + driverIdStr, "LOCKED", 10, TimeUnit.SECONDS);
             if (Boolean.TRUE.equals(isLocked)) {
-                double distance = result.getDistance().getValue();
                 createOffer(driverId, orderId);
-                log.info("Driver {} found! Distance: {} km",
-                        driverIdStr, String.format("%.2f", distance));
+                log.info("Driver {} found!",
+                        driverIdStr);
                 return driverId;
             }
             attempts++;

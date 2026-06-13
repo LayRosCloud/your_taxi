@@ -38,6 +38,7 @@ import java.util.*;
 
 import static com.leafall.yourtaxi.config.ConstantsConfig.BIG_ORDER_FROM_KEY;
 import static com.leafall.yourtaxi.config.ConstantsConfig.PRICE_KEY;
+import static com.leafall.yourtaxi.dispatch.OrderAssignmentService.MAX_RADIUS_SEARCH;
 import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
 
 @Service
@@ -187,7 +188,7 @@ public class OrderService {
             createOrderHistory(newOrder, String.format("Заказ создан пользователем \"%s\" и отправлен диспетчеру \"%s\" на рассмотрение", user.getFullName(), dispatcher.getFullName()), null);
         } else {
 
-            var driverId = searchService.findDriverForOrder(dto.getFrom().getLongitude(), dto.getFrom().getLongitude(), 5, newOrder.getId());
+            var driverId = searchService.findDriverForOrder(dto.getFrom().getLongitude(), dto.getFrom().getLongitude(), MAX_RADIUS_SEARCH, newOrder.getId());
             if (driverId == null) {
                 log.warn("В системе никого нет");
                 throw new BadRequestException("order.error.not-found-executor");
@@ -245,7 +246,7 @@ public class OrderService {
             throw new ConflictException("order.error.not-valid");
         }
         orderAssignmentService.removeActiveOffer(id, findedOrder.getId());
-        var driverForOrder = searchService.findDriverForOrder(order.getLongitude(), order.getLatitude(), 5, id);
+        var driverForOrder = searchService.findDriverForOrder(order.getLongitude(), order.getLatitude(), MAX_RADIUS_SEARCH, id);
 
         var currentUser = geoService.getDriverLocation(getCurrentUserId()).orElse(null);
 

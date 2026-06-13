@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+import static com.leafall.yourtaxi.dispatch.OrderAssignmentService.MAX_RADIUS_SEARCH;
+
 @RestController
 @RequiredArgsConstructor
 @MessageMapping("/v1/coords")
@@ -43,7 +45,7 @@ public class GeoController {
                                                                        @RequestParam @NotNull Double lat,
                                                                        @RequestParam Double radius) {
         if (radius == null) {
-            radius = 1000d;
+            radius = MAX_RADIUS_SEARCH;
         }
         log.info("Начала получения координат lon={} lat={} radius={}", lon, lat, radius);
         var geos = geoService.getNearbyDrivers(lon, lat, radius);
