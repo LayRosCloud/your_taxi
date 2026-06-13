@@ -83,22 +83,8 @@ services:
       - loki
     networks:
       - app_network
-  grafana:
-    image: grafana/grafana:10.2.0
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=LpnrLqOO0GFkw03
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel
-    volumes:
-      - grafana_data:/var/lib/grafana
-    depends_on:
-      - loki
-    networks:
-      - app_network
 
 volumes:
-  pg_data:
   pg_redis:
   grafana_data:
   loki_data:

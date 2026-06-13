@@ -1,5 +1,6 @@
 package com.leafall.yourtaxi.dto.car;
 
+import com.leafall.yourtaxi.dto.user.UserResponseDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -9,6 +10,9 @@ public class CarResponseDto {
     @Schema(description = "Id машины", example = "1")
     @NotNull(message = "{validation.not-null}")
     private Long id;
+
+    @NotNull
+    private UserResponseDto user;
 
     @Schema(description = "Номер машины", example = "T222ZZ11 22")
     @NotNull(message = "{validation.not-null}")

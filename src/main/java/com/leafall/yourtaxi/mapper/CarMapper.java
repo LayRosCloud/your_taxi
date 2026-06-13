@@ -6,7 +6,7 @@ import com.leafall.yourtaxi.dto.car.CarUpdateDto;
 import com.leafall.yourtaxi.entity.CarEntity;
 import org.mapstruct.Mapper;
 
-@Mapper
+@Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface CarMapper {
     CarResponseDto mapToDto(CarEntity car);
     CarEntity mapToEntity(CarCreateDto car);

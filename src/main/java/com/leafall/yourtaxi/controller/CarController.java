@@ -23,6 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
+
 @RestController
 @Tag(name = "Cars", description = "Машины (автопарк)")
 @RequiredArgsConstructor
@@ -58,8 +60,25 @@ public class CarController {
     @PreAuthorize("hasAnyAuthority('EMPLOYEE', 'DISPATCHER')")
     public ResponseEntity<PaginationResponse<CarResponseDto>> findAllAvailable(@ParameterObject PaginationParams params) {
         log.info("Начало получения доступных машин: {}", params);
-        var response = carService.findAllAvailable(params);
+        var response = carService.findAllAvailable(getCurrentUserId(), params);
         log.info("Получено {} доступных машин", response.cursor().getTotal());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/v1/cars/last")
+    @Operation(
+            summary = "Получить последнюю машину",
+            description = "Получить машину последнюю машину"
+    )
+    @ApiResponseUnauthorized
+    @ApiResponse(description = "Получены доступные автомобили", responseCode = "200")
+    @ApiResponseForbidden
+    @PreAuthorize("hasAnyAuthority('EMPLOYEE')")
+    public ResponseEntity<CarResponseDto> findLast() {
+        var user = getCurrentUserId();
+        log.info("Начало получения последней машины: {}", user);
+        var response = carService.findLast(user);
+        log.info("Машина {} получена", response.getId());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -82,16 +101,16 @@ public class CarController {
     @PostMapping("/v1/cars")
     @Operation(
             summary = "Создать машину",
-            description = "Создать машину (только диспетчер)"
+            description = "Создать машину"
     )
     @ApiResponseBadRequest
     @ApiResponseUnauthorized
     @ApiResponse(description = "Создан автомобиль", responseCode = "201")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('DISPATCHER')")
+    @PreAuthorize("hasAnyAuthority('EMPLOYEE', 'DISPATCHER')")
     public ResponseEntity<CarResponseDto> create(@RequestBody @Valid CarCreateDto dto) {
         log.info("Начало создания машины {} {} {}", dto.getMark(), dto.getNumber(), dto.getColor());
-        var response = carService.create(dto);
+        var response = carService.create(dto, getCurrentUserId());
         log.info("Машина создана id={}", response.getId());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -99,16 +118,16 @@ public class CarController {
     @PutMapping("/v1/cars")
     @Operation(
             summary = "Обновить машину",
-            description = "Обновить машину (только диспетчер)"
+            description = "Обновить машину"
     )
     @ApiResponseBadRequest
     @ApiResponseUnauthorized
     @ApiResponseNotFound
     @ApiResponse(description = "Обновлен автомобиль", responseCode = "200")
-    @PreAuthorize("hasAuthority('DISPATCHER')")
+    @PreAuthorize("hasAnyAuthority('EMPLOYEE', 'DISPATCHER')")
     public ResponseEntity<CarResponseDto> update(@RequestBody @Valid CarUpdateDto dto) {
         log.info("Начало обновления машины id={}", dto.getId());
-        var response = carService.update(dto);
+        var response = carService.update(dto, getCurrentUserId());
         log.info("Машина обновлена {} {} {}", response.getMark(), response.getNumber(), response.getColor());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -116,17 +135,17 @@ public class CarController {
     @DeleteMapping("/v1/cars/{id}")
     @Operation(
             summary = "Удалить машину (мягкое удаление)",
-            description = "Удалить машину (только диспетчер)"
+            description = "Удалить машину"
     )
     @ApiResponseBadRequest
     @ApiResponseUnauthorized
     @ApiResponseNotFound
     @ApiResponse(description = "Удален автомобиль", responseCode = "204")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAuthority('DISPATCHER')")
+    @PreAuthorize("hasAnyAuthority('EMPLOYEE', 'DISPATCHER')")
     public ResponseEntity<Void> delete(@PathVariable @Min(0) Long id) {
         log.info("Начало мягкого удаления машины id={}", id);
-        carService.delete(id);
+        carService.delete(id, getCurrentUserId());
         log.info("Машина удалена");
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

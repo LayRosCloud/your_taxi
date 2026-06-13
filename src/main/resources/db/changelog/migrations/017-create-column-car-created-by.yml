@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 017-create-column-car-created-by
+      changes:
+        - addColumn:
+            tableName: cars
+            columns:
+              - column:
+                  name: created_by
+                  type: UUID
+                  constraints:
+                    nullable: true
+                    referencedTableName: users
+                    referencedColumnNames: id
+                    foreignKeyName: fk_cars_users

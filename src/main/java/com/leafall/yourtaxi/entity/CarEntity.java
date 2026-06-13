@@ -22,6 +22,10 @@ public class CarEntity implements CreatedAtTimestampAware {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private UserEntity user;
+
     @Column(name = "number", nullable = false)
     private String number;
 
