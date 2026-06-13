@@ -188,7 +188,7 @@ public class OrderService {
             createOrderHistory(newOrder, String.format("Заказ создан пользователем \"%s\" и отправлен диспетчеру \"%s\" на рассмотрение", user.getFullName(), dispatcher.getFullName()), null);
         } else {
 
-            var driverId = searchService.findDriverForOrder(dto.getFrom().getLongitude(), dto.getFrom().getLongitude(), MAX_RADIUS_SEARCH, newOrder.getId());
+            var driverId = searchService.findDriverForOrder(dto.getFrom().getLongitude(), dto.getFrom().getLatitude(), MAX_RADIUS_SEARCH, newOrder.getId());
             if (driverId == null) {
                 log.warn("В системе никого нет");
                 throw new BadRequestException("order.error.not-found-executor");
