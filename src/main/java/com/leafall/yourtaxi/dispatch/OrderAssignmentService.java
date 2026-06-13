@@ -4,12 +4,6 @@ import com.leafall.yourtaxi.dto.OfferAssignment;
 import com.leafall.yourtaxi.dto.order.OrderRedisWaitingDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.geo.Circle;
-import org.springframework.data.geo.Distance;
-import org.springframework.data.geo.Metrics;
-import org.springframework.data.geo.Point;
-import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -19,7 +13,6 @@ import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static com.leafall.yourtaxi.dispatch.GeoService.GEO_KEY;
 import static com.leafall.yourtaxi.dispatch.SearchService.DRIVER_LOCK_PREFIX;
 import static com.leafall.yourtaxi.dispatch.SearchService.ORDERS_KEY;
 

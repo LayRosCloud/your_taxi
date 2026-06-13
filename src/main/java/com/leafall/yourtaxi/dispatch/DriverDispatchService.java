@@ -7,18 +7,17 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-import static com.leafall.yourtaxi.dispatch.GeoService.DRIVER_COORDS_PREFIX;
 import static com.leafall.yourtaxi.dispatch.SearchService.DRIVER_LOCK_PREFIX;
-import static com.leafall.yourtaxi.dispatch.SearchService.QUEUE_KEY;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class DriverDispatchService {
     private final RedisTemplate<String, Object> redisTemplate;
+    public final static String DRIVER_STATUS = "taxi:driver:";
 
     public void addToQueue(UUID driverId) {
-        String locationKey = DRIVER_COORDS_PREFIX + driverId;
+        String locationKey = DRIVER_STATUS + driverId;
         removeFromQueue(driverId);
         redisTemplate.opsForHash().put(locationKey, "status", "FREE");
         redisTemplate.delete(DRIVER_LOCK_PREFIX + driverId);
@@ -26,7 +25,7 @@ public class DriverDispatchService {
     }
 
     public void removeFromQueue(UUID driverId) {
-        String locationKey = DRIVER_COORDS_PREFIX + driverId;
+        String locationKey = DRIVER_STATUS + driverId;
         redisTemplate.opsForHash().put(locationKey, "status", "BUSY");
     }
 }

@@ -23,6 +23,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.leafall.yourtaxi.dispatch.DriverDispatchService.DRIVER_STATUS;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -91,14 +93,27 @@ public class GeoService {
 
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(locationKey);
 
-        if (entries.isEmpty()) {
+        if (entries == null || entries.isEmpty()) {
             return Optional.empty();
         }
-
-        return Optional.of(extractFromRedisCoordinates(entries));
+        var extractedRedis = extractFromRedisCoordinates(entries);
+        if (extractedRedis == null) {
+            return Optional.empty();
+        }
+        var status = redisTemplate.opsForHash().get(DRIVER_STATUS + driverId, "status");
+        if (status != null) {
+            extractedRedis.setStatus(status.toString());
+        }
+        return Optional.of(extractedRedis);
     }
 
     private CoordinateResponseDto extractFromRedisCoordinates(Map<Object, Object> driverData) {
+        if (driverData == null) {
+            return null;
+        }
+        if (driverData.get("id") == null) {
+            return null;
+        }
         var dto = new CoordinateResponseDto();
         dto.setId(UUID.fromString(driverData.get("id").toString()));
         dto.setLongitude(Double.parseDouble(driverData.get("lon").toString()));

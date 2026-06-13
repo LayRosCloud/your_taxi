@@ -16,14 +16,13 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SendToUser;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 import static com.leafall.yourtaxi.dispatch.OrderAssignmentService.MAX_RADIUS_SEARCH;
+import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
 
 @RestController
 @RequiredArgsConstructor
@@ -61,6 +60,18 @@ public class GeoController {
         var result = geoService.updateDriverLocation(driverId, dto);
         log.info("Точка установлена для пользователя {}. И начало отправки всем /topic/set/position", driverId);
         messagingTemplate.convertAndSend("/topic/set/position", result);
+
+    }
+
+    @PostMapping("/v1/coords")
+    @ApiResponse(description = "Координата установлена", responseCode = "200")
+    @ApiResponseUnauthorized
+    public ResponseEntity<CoordinateResponseDto> setCoordinateApi(@RequestBody CoordinateSaveDto dto) {
+        log.info("Установка новой геоточки {} для пользователя {}", dto, getCurrentUserId());
+        var result = geoService.updateDriverLocation(getCurrentUserId(), dto);
+        log.info("Точка установлена для пользователя {}. И начало отправки всем /topic/set/position", getCurrentUserId());
+        messagingTemplate.convertAndSend("/topic/set/position", result);
+        return new ResponseEntity<>(result, HttpStatus.OK);
 
     }
 }
