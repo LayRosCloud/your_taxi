@@ -29,6 +29,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import java.util.HashSet;
 import java.util.List;
 
+import static com.leafall.yourtaxi.dispatch.DriverDispatchService.DRIVER_STATUS;
 import static com.leafall.yourtaxi.dispatch.GeoService.DRIVER_COORDS_PREFIX;
 import static com.leafall.yourtaxi.dispatch.SearchService.DRIVER_LOCK_PREFIX;
 import static org.mockito.Mockito.*;
@@ -172,7 +173,7 @@ public class OrderControllerTest extends BaseIntegrationTest {
         assertEquals(order.getPaymentType(), response.getPaymentType());
         assertEquals(response.getStatus(), OrderStatus.ACCEPT);
         assertEquals(response.getExecutor().getUser().getId(), employeeUser.getId());
-        assertEquals("BUSY", redisTemplate.opsForHash().get(DRIVER_COORDS_PREFIX + employeeUser.getId(), "status"));
+        assertEquals("BUSY", redisTemplate.opsForHash().get(DRIVER_STATUS + employeeUser.getId(), "status"));
     }
 
     @Test
@@ -207,7 +208,7 @@ public class OrderControllerTest extends BaseIntegrationTest {
         assertEquals(order.getPaymentType(), response.getPaymentType());
         assertEquals(response.getStatus(), OrderStatus.COMPLETED);
         assertEquals(response.getExecutor().getUser().getId(), employeeUser.getId());
-        assertEquals("FREE", redisTemplate.opsForHash().get(DRIVER_COORDS_PREFIX + employeeUser.getId(), "status"));
+        assertEquals("FREE", redisTemplate.opsForHash().get(DRIVER_STATUS + employeeUser.getId(), "status"));
     }
 
     @Test

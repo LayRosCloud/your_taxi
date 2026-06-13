@@ -2,6 +2,7 @@ package com.leafall.yourtaxi.repository;
 
 import com.leafall.yourtaxi.entity.CarEntity;
 import com.leafall.yourtaxi.entity.TokenEntity;
+import com.leafall.yourtaxi.entity.UserEntity;
 import com.leafall.yourtaxi.entity.enums.UserRole;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,4 +33,6 @@ public interface CarRepository extends JpaRepository<CarEntity, Long> {
             "ORDER BY c.createdAt DESC " +
             "LIMIT 1")
     Optional<CarEntity> findByTripLast(@Param("userId") UUID userId);
+
+    Page<CarEntity> findAllByUser(UserEntity user, Pageable pageable);
 }

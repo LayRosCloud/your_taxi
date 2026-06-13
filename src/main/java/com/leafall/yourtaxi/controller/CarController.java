@@ -44,7 +44,7 @@ public class CarController {
     @PreAuthorize("hasAnyAuthority('EMPLOYEE', 'DISPATCHER')")
     public ResponseEntity<PaginationResponse<CarResponseDto>> findAll(@ParameterObject PaginationParams params) {
         log.info("Начало получения машин: {}", params);
-        var response = carService.findAll(params);
+        var response = carService.findAll(getCurrentUserId(), params);
         log.info("Получено {} машин", response.cursor().getTotal());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

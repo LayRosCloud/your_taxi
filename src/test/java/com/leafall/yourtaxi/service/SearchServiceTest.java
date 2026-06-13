@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.leafall.yourtaxi.dispatch.DriverDispatchService.DRIVER_STATUS;
 import static com.leafall.yourtaxi.dispatch.GeoService.DRIVER_COORDS_PREFIX;
 import static com.leafall.yourtaxi.dispatch.GeoService.GEO_KEY;
 import static com.leafall.yourtaxi.dispatch.SearchService.DRIVER_LOCK_PREFIX;
@@ -59,6 +60,7 @@ public class SearchServiceTest extends BaseIntegrationTest {
     private void mockDriverLocation(UUID id, double lat, double lon, String status) {
         redisTemplate.opsForGeo().remove(GEO_KEY, id);
         String key = DRIVER_COORDS_PREFIX + id;
+        String statusKey = DRIVER_STATUS + id;
         var map = new HashMap<String, Object>();
         map.put("lat", lat);
         map.put("lon", lon);
@@ -68,6 +70,7 @@ public class SearchServiceTest extends BaseIntegrationTest {
         map.put("id", id.toString());
         redisTemplate.opsForGeo().add(GEO_KEY, new Point(lon, lat), id);
         redisTemplate.opsForHash().putAll(key, map);
+        redisTemplate.opsForHash().put(statusKey, "status", status);
 
     }
     @Test
@@ -156,11 +159,11 @@ public class SearchServiceTest extends BaseIntegrationTest {
     @DisplayName("Complete order processing and search immediately")
     void testBusyStatusAndChangeFree() {
         //given
-        String key = DRIVER_COORDS_PREFIX + driver1;
+        String key = DRIVER_STATUS + driver1;
         dispatchService.addToQueue(driver1);
         redisTemplate.opsForHash().put(key, "status", "BUSY");
-        redisTemplate.opsForHash().put(DRIVER_COORDS_PREFIX + driver2, "status", "BUSY");
-        redisTemplate.opsForHash().put(DRIVER_COORDS_PREFIX + driver3, "status", "BUSY");
+        redisTemplate.opsForHash().put(DRIVER_STATUS + driver2, "status", "BUSY");
+        redisTemplate.opsForHash().put(DRIVER_STATUS + driver3, "status", "BUSY");
         // when
         UUID firstFound = searchService.findDriverForOrder(37.611, 55.751, 2.0, orderId);
         dispatchService.addToQueue(driver1);

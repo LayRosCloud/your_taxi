@@ -3,7 +3,9 @@ package com.leafall.yourtaxi.service;
 import com.leafall.yourtaxi.dto.car.CarCreateDto;
 import com.leafall.yourtaxi.dto.car.CarResponseDto;
 import com.leafall.yourtaxi.dto.car.CarUpdateDto;
+import com.leafall.yourtaxi.entity.CarEntity;
 import com.leafall.yourtaxi.entity.enums.UserRole;
+import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.exception.ForbiddenException;
 import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.mapper.CarMapper;
@@ -15,6 +17,7 @@ import com.leafall.yourtaxi.utils.pagination.PaginationParams;
 import com.leafall.yourtaxi.utils.pagination.PaginationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,9 +33,18 @@ public class CarService {
     private final CarMapper carMapper;
 
     @Transactional(readOnly = true)
-    public PaginationResponse<CarResponseDto> findAll(PaginationParams params) {
+    public PaginationResponse<CarResponseDto> findAll(UUID userId,PaginationParams params) {
         var pageable = params.getPageable(false, "id");
-        var carPage = carRepository.findAll(pageable);
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("user.error.not-found"));
+        Page<CarEntity> carPage = null;
+        if (user.getRole().equals(UserRole.DISPATCHER)) {
+            carPage = carRepository.findAll(pageable);
+        } else if (user.getRole().equals(UserRole.EMPLOYEE)) {
+            carPage = carRepository.findAllByUser(user, pageable);
+        } else {
+            throw new BadRequestException();
+        }
         var cursor = new PaginationCursor(params, carPage.getTotalElements());
         var dtoList = carPage.getContent().stream().map(carMapper::mapToDto).toList();
         return new PaginationResponse<>(dtoList, cursor);
