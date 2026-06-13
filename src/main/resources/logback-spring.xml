@@ -9,6 +9,9 @@
 
     <appender name="FILE_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/application.jsonl</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>logs/application.%d{yyyy-MM-dd}.%i.jsonl.gz</fileNamePattern>
             <maxFileSize>10MB</maxFileSize>

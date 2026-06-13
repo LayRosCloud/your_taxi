@@ -2,6 +2,7 @@ package com.leafall.yourtaxi.service;
 
 import com.leafall.yourtaxi.dispatch.DriverDispatchService;
 import com.leafall.yourtaxi.dispatch.GeoService;
+import com.leafall.yourtaxi.dispatch.OrderAssignmentService;
 import com.leafall.yourtaxi.dispatch.SearchService;
 import com.leafall.yourtaxi.dto.order.*;
 import com.leafall.yourtaxi.dto.point.PointCostDto;
@@ -55,6 +56,8 @@ public class OrderService {
     private final VariableRepository variableRepository;
     private final OrderHistoryRepository orderHistoryRepository;
     private final SearchService searchService;
+    private final OrderAssignmentService orderAssignmentService;
+
     private static final List<OrderStatus> NOT_FINISHED_STATUSES = List.of(OrderStatus.COMPLETED, OrderStatus.REJECTED);
     @Transactional(readOnly = true)
     public OrderResponseWithDurationDto findActiveOrder() {
@@ -224,6 +227,7 @@ public class OrderService {
                         trip.getUser().getFullName()), geoService.mapFromDtoToPoint(geo));
         dispatchService.removeFromQueue(getCurrentUserId());
         var newOrder = orderRepository.save(order);
+        orderAssignmentService.removeActiveOffer(id, order.getId());
         return orderMapper.mapToDto(newOrder);
     }
 
@@ -240,6 +244,7 @@ public class OrderService {
             log.info("Заказ {} уже имеет статус {}. Невозможно найти для него исполнителя", findedOrder.getId(), findedOrder.getStatus());
             throw new ConflictException("order.error.not-valid");
         }
+        orderAssignmentService.removeActiveOffer(id, findedOrder.getId());
         var driverForOrder = searchService.findDriverForOrder(order.getLongitude(), order.getLatitude(), 5, id);
 
         var currentUser = geoService.getDriverLocation(getCurrentUserId()).orElse(null);
