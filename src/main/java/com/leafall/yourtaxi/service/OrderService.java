@@ -190,7 +190,7 @@ public class OrderService {
             var driverId = searchService.findDriverForOrder(dto.getFrom().getLongitude(), dto.getFrom().getLongitude(), 5, newOrder.getId());
             if (driverId == null) {
                 log.warn("В системе никого нет");
-                throw new BadRequestException("order.error.exists-order");
+                throw new BadRequestException("order.error.not-found-executor");
             }
             var order = new OrderRedisWaitingDto();
             order.setId(newOrder.getId());
