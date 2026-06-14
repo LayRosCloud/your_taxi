@@ -5,6 +5,7 @@ import com.leafall.yourtaxi.exception.annotation.ApiResponseBadRequest;
 import com.leafall.yourtaxi.exception.annotation.ApiResponseNotFound;
 import com.leafall.yourtaxi.exception.annotation.ApiResponseUnauthorized;
 import com.leafall.yourtaxi.service.GenerateFileService;
+import com.leafall.yourtaxi.service.OrderService;
 import com.leafall.yourtaxi.utils.pagination.PaginationParams;
 import com.leafall.yourtaxi.utils.pagination.PaginationResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +35,7 @@ import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
 @Tag(name = "Generated Files")
 public class GeneratedFileController {
     private final GenerateFileService service;
+    private final OrderService orderService;
 
     @GetMapping("/v1/orders/reports")
     @Operation(
@@ -106,7 +108,7 @@ public class GeneratedFileController {
     @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<GeneratedFileResponseDto> generateExcel(@RequestParam String fromDate, @RequestParam String toDate) {
         log.info("Начало генерации отчета по датам: {} {}", fromDate, toDate);
-        var order = service.generateExcel(getCurrentUserId(), Date.valueOf(fromDate), Date.valueOf(toDate));
+        var order = orderService.generateExcel(getCurrentUserId(), Date.valueOf(fromDate), Date.valueOf(toDate));
         log.info("Запрос на генерацию установлена");
         return new ResponseEntity<>(order, HttpStatus.OK);
     }

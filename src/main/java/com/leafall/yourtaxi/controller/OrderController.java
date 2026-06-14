@@ -62,7 +62,9 @@ public class OrderController {
     @ApiResponse(description = "Получить заказы", responseCode = "200")
     @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<PaginationResponse<OrderResponseDto>> findAll(@ParameterObject OrderQueryDto dto) {
+        log.info("Начало поиска по заказам диспетчером {}", dto);
         var orders = service.findAll(dto);
+        log.info("Данные успешно получены. Максимальное количество {}", orders.cursor().getTotal());
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 

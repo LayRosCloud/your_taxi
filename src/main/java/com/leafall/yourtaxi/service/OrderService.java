@@ -33,6 +33,8 @@ import org.locationtech.jts.geom.Geometry;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.sql.Date;
 import java.util.*;
@@ -59,6 +61,7 @@ public class OrderService {
     private final OrderHistoryRepository orderHistoryRepository;
     private final SearchService searchService;
     private final OrderAssignmentService orderAssignmentService;
+    private final GenerateFileService generateFileService;
 
     private static final List<OrderStatus> NOT_FINISHED_STATUSES = List.of(OrderStatus.COMPLETED, OrderStatus.REJECTED);
     @Transactional(readOnly = true)
@@ -158,7 +161,20 @@ public class OrderService {
         point.setIsBigDistance(distanceKilometers >= distanceLimit);
         return point;
     }
-
+    @Transactional(rollbackFor = Exception.class)
+    public GeneratedFileResponseDto generateExcel(UUID userId, java.sql.Date fromDate, java.sql.Date toDate) {
+        var orders = orderRepository.findAllByCreatedAtBetween(fromDate.getTime(), toDate.getTime());
+        var generatedFile = generateFileService.createDefault(userId);
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        generateFileService.startGenerateExcel(orders, fromDate, generatedFile.getId());
+                    }
+                }
+        );
+        return generatedFile;
+    }
     @Transactional(rollbackFor = Exception.class)
     public OrderResponseDto create(OrderCreateDto dto) {
         var currentUserId = getCurrentUserId();
@@ -269,7 +285,7 @@ public class OrderService {
             findedOrder.setStatus(OrderStatus.REJECTED);
             var updatedOrder = orderRepository.save(findedOrder);
             orderDto = orderMapper.mapToDto(updatedOrder);
-            messagingTemplate.convertAndSendToUser(findedOrder.getUser().getId().toString(), "/topic/orders/reject", orderDto);
+            messagingTemplate.convertAndSendToUser(findedOrder.getUser().getId().toString(), "/queue/orders/reject", orderDto);
             createOrderHistory(findedOrder, "[Система подбора] Исполнителей не было найдено для заказа. Произвожу отмену", geoService.mapFromDtoToPoint(currentUser));
         }
         return orderDto;

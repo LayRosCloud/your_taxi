@@ -91,21 +91,6 @@ public class GenerateFileService {
         return dto;
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    public GeneratedFileResponseDto generateExcel(UUID userId, java.sql.Date fromDate, java.sql.Date toDate) {
-        var orders = orderRepository.findAllByCreatedAtBetween(fromDate.getTime(), toDate.getTime());
-        var generatedFile = createDefault(userId);
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        startGenerateExcel(orders, fromDate, generatedFile.getId());
-                    }
-                }
-        );
-        return generatedFile;
-    }
-
     @Async
     @SneakyThrows
     public void startGenerateExcel(List<OrderEntity> orders, Date date, UUID id) {
@@ -172,13 +157,18 @@ public class GenerateFileService {
                 Files.write(filePath, reportBytes);
                 toUpdated.setPath(fileName);
             }
+        } catch (Exception e) {
+            toUpdated.setStatus(GeneratedFileStatus.FAILED);
+            generatedFileRepository.save(toUpdated);
+            log.error("Произошла ошибка при генерации", e);
+            throw e;
         }
         toUpdated.setStatus(GeneratedFileStatus.COMPLETED);
         var savedTwo = generatedFileRepository.save(toUpdated);
         log.info("Файл {} сгенерирован", savedTwo.getId());
     }
 
-    private GeneratedFileResponseDto createDefault(UUID userId) {
+    public GeneratedFileResponseDto createDefault(UUID userId) {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("user.error.not-found"));
         var entity = new GeneratedFileEntity();

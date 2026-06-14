@@ -42,7 +42,7 @@ public class OrderSpecification {
             if (paymentType == null) {
                 return null;
             }
-            return cb.equal(root.get("payment_type"), paymentType);
+            return cb.equal(root.get("paymentType"), paymentType);
         };
     }
 
