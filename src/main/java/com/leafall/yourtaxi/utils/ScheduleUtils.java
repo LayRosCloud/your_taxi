@@ -56,7 +56,7 @@ public class ScheduleUtils {
                 log.debug("Не нашлось просроченных офферов");
                 return;
             }
-            log.info("Обнаружено {} истекших предложений", expiredOffers.size());
+            log.info("Обнаружено {} истекших предложений {}", expiredOffers.size(), expiredOffers);
             for (Object offerJson : expiredOffers) {
                 try {
                     var offer = objectMapper.readValue(offerJson.toString(), OfferAssignment.class);
