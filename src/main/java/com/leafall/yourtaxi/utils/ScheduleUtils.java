@@ -36,7 +36,6 @@ public class ScheduleUtils {
     private final OrderHistoryRepository orderHistoryRepository;
     private final OrderRepository orderRepository;
 
-    @Scheduled(fixedDelay = 1000)
     public void scheduleHandleOrder() {
         long now = System.currentTimeMillis();
         try {
