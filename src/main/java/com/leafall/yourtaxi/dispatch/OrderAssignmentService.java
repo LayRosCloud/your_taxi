@@ -77,9 +77,15 @@ public class OrderAssignmentService {
             }
 
             var newDriverId = findDriverForOrder(order.getLongitude(), order.getLatitude(), MAX_RADIUS_SEARCH, order.getId());
-            order.getIds().add(newDriverId.toString());
-            redisTemplate.opsForValue().set(String.format("%s%s", ORDERS_KEY, order.getId().toString()), order, 30, TimeUnit.MINUTES);
-            createOffer(newDriverId, orderId);
+            if (newDriverId != null) {
+                log.info("Водитель {} найден добавляю делаю ему оффер", newDriverId);
+                order.getIds().add(newDriverId.toString());
+                redisTemplate.opsForValue().set(String.format("%s%s", ORDERS_KEY, order.getId().toString()), order, 30, TimeUnit.MINUTES);
+                createOffer(newDriverId, orderId);
+                log.info("Водитель успешно добавлен в заказ {}", orderId);
+            } else {
+                log.warn("Водитель не найден!");
+            }
             return newDriverId;
         } catch (Exception e) {
             log.error("Ошибка обработки таймаута для заказа {}", orderId, e);

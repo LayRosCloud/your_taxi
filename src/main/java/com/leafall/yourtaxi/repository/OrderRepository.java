@@ -23,4 +23,5 @@ public interface OrderRepository extends JpaRepository<OrderEntity, UUID>, JpaSp
     List<OrderEntity> findAllByPlannerDriverAndScheduledStartTimeBetween(UserEntity plannerDriver, Long scheduledStartTime, Long scheduledStartTime2);
     @Query("SELECT o FROM OrderEntity o JOIN o.executor e WHERE e.id = :executorId")
     Optional<OrderEntity> findByEmployeeId(@Param("executorId") UUID executorId);
+    List<OrderEntity> findAllByIdIn(Collection<UUID> id);
 }
