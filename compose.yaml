@@ -56,8 +56,8 @@ services:
     ports:
       - ${EXPOSE_SERVER_PORT}:${SERVER_PORT}
     volumes:
-      - ./logs:/app/logs
-      - ./uploads:/app/uploads
+      - /var/log/taxi:/app/logs
+      - /var/opt/uploads:/app/uploads
   pg_taxi:
     image: "postgis/postgis:15-3.4"
     container_name: pg_taxi
@@ -103,7 +103,7 @@ services:
   promtail:
     image: grafana/promtail:2.9.0
     volumes:
-      - ./logs:/var/log/taxi
+      - /var/log/taxi:/var/log/taxi
       - ./promtail-config.yaml:/etc/promtail/config.yaml
     command: -config.file=/etc/promtail/config.yaml
     depends_on:

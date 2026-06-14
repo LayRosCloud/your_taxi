@@ -355,7 +355,7 @@ public class OrderService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public OrderResponseDto reject(UUID id) {
+    public OrderResponseAndOrderWaiting reject(UUID id) {
         var currentUserId = getCurrentUserId();
         var order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("order.error.not-found"));
@@ -370,7 +370,11 @@ public class OrderService {
         order.setStatus(OrderStatus.REJECTED);
         var newOrder = orderRepository.save(order);
         createOrderHistory(newOrder, "[Действия над заказом] Заказчик отменил выполнение заказа", null);
-        return orderMapper.mapToDto(newOrder);
+        var orderFromRedis = searchService.getOrderFromRedis(id);
+        var orderResponseAndOrderWaiting = new OrderResponseAndOrderWaiting();
+        orderResponseAndOrderWaiting.setOrder(orderMapper.mapToDto(newOrder));
+        orderResponseAndOrderWaiting.setDto(orderFromRedis);
+        return orderResponseAndOrderWaiting;
     }
 
     @Transactional(rollbackFor = Exception.class)

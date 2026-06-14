@@ -33,7 +33,7 @@ public class OrderSpecification {
             if (isBigDistance == null) {
                 return null;
             }
-            return cb.equal(root.get("is_big_distance"), isBigDistance);
+            return cb.equal(root.get("isBigDistance"), isBigDistance);
         };
     }
 

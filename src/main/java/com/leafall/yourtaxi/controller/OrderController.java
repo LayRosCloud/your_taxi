@@ -218,9 +218,13 @@ public class OrderController {
         log.info("Начало отмены заказа: id={}, currentUserId={}", id, getCurrentUserId());
         var order = service.reject(id);
         log.info("Заказ {} отменен заказчиком {}.", id, getCurrentUserId());
-        log.debug("[/topic/orders/rejecting] Начало отправки уведомления всем ");
-        messagingTemplate.convertAndSend("/topic/orders/rejecting", order);
-        return new ResponseEntity<>(order, HttpStatus.OK);
+        log.debug("[/queue/orders/cancel] Начало отправки уведомления всем ");
+        if (order.getDto() != null) {
+            for (var driverId: order.getDto().getIds()) {
+                messagingTemplate.convertAndSendToUser(driverId,"/queue/orders/cancel", order);
+            }
+        }
+        return new ResponseEntity<>(order.getOrder(), HttpStatus.OK);
     }
 
     @DeleteMapping("/v1/orders")

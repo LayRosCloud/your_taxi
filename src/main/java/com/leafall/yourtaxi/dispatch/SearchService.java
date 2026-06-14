@@ -35,6 +35,10 @@ public class SearchService {
     }
 
     public OrderRedisWaitingDto getOrderFromRedis(UUID id) {
-        return (OrderRedisWaitingDto) redisTemplate.opsForValue().get(String.format("%s%s", ORDERS_KEY, id));
+        var order = redisTemplate.opsForValue().get(String.format("%s%s", ORDERS_KEY, id));
+        if (order == null) {
+            return null;
+        }
+        return (OrderRedisWaitingDto) order;
     }
 }

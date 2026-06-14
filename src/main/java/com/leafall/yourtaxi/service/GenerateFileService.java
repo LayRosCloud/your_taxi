@@ -111,10 +111,14 @@ public class GenerateFileService {
     public void startGenerateExcel(List<OrderEntity> orders, Date date, UUID id) {
         var generatedFile = generatedFileRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("base.error.not-found"));
+        log.info("Начало генерации отчета");
         generatedFile.setStatus(GeneratedFileStatus.IN_PROCESSED);
         var toUpdated = generatedFileRepository.save(generatedFile);
+        log.info("Статус установлен IN_PROCESSED");
+
         try (var templateStream = getClass().getClassLoader().getResourceAsStream(TEMPLATE_PATH_EXCEL)) {
             if (templateStream == null) throw new FileNotFoundException("Template not found");
+            log.info("Файл найден");
             try (final var workbook = new XSSFWorkbook(templateStream)) {
                 var formatterMonthAndYear = new SimpleDateFormat("MMMM.yyyy");
                 final var sheet  = workbook.getSheet("ORDERS");
@@ -171,6 +175,7 @@ public class GenerateFileService {
         }
         toUpdated.setStatus(GeneratedFileStatus.COMPLETED);
         var savedTwo = generatedFileRepository.save(toUpdated);
+        log.info("Файл {} сгенерирован", savedTwo.getId());
     }
 
     private GeneratedFileResponseDto createDefault(UUID userId) {

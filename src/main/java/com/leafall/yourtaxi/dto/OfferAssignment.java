@@ -11,6 +11,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class OfferAssignment {
     private UUID orderId;
+    private UUID userId;
     private UUID driverId;
     private Long createdAt;
     private Long expiresAt;

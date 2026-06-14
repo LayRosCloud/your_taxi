@@ -2,6 +2,8 @@ package com.leafall.yourtaxi.dispatch;
 
 import com.leafall.yourtaxi.dto.OfferAssignment;
 import com.leafall.yourtaxi.dto.order.OrderRedisWaitingDto;
+import com.leafall.yourtaxi.exception.NotFoundException;
+import com.leafall.yourtaxi.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,6 +28,7 @@ public class OrderAssignmentService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final GeoService geoService;
+    private final OrderRepository orderRepository;
 
     private final ObjectMapper objectMapper;
 
@@ -36,9 +39,11 @@ public class OrderAssignmentService {
         try {
             long now = System.currentTimeMillis();
             long expiresAt = now + (10 * 1000);
-
+            var order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new NotFoundException("order.error.not-found"));
             OfferAssignment offer = new OfferAssignment();
             offer.setOrderId(orderId);
+            offer.setUserId(order.getUser().getId());
             offer.setDriverId(driverId);
             offer.setCreatedAt(now);
             offer.setExpiresAt(expiresAt);
