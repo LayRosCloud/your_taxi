@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 018-create-table-generated-files
+      changes:
+        - sql:
+            "CREATE TYPE generated_files_enum AS ENUM ('NEW', 'IN_PROCESSED', 'FAILED', 'COMPLETED')"
+        - createTable:
+            tableName: generated_files
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: path
+                  type: VARCHAR(300)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: UUID
+                  constraints:
+                    nullable: true
+                    references: users(id) ON DELETE SET NULL
+                    foreignKeyName: fk_files_generated_files
+              - column:
+                  name: status
+                  type: generated_files_enum
+                  defaultValue: NEW
+                  constraints:
+                    nullable: false
+      rollback:
+        - sql:
+            "DROP TYPE IF EXISTS generated_files_enum"
+        - dropTable:
+            tableName: generated_files

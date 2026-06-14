@@ -6,7 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-public record PaginationParams(@Parameter(description = "Лимит", example = "0") Integer limit,
+public record PaginationParams(@Parameter(description = "Лимит", example = "10") Integer limit,
                                @Parameter(description = "Номер страницы", example = "0") Integer page) {
 
     public PaginationParams {
@@ -16,7 +16,7 @@ public record PaginationParams(@Parameter(description = "Лимит", example = 
         if (limit > 100) {
             limit = 100;
         } else if (limit <= 0) {
-            limit = 1;
+            limit = 10;
         }
         if (page == null || page <= 0) {
             page = 0;

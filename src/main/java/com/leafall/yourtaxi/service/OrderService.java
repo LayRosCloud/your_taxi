@@ -4,6 +4,7 @@ import com.leafall.yourtaxi.dispatch.DriverDispatchService;
 import com.leafall.yourtaxi.dispatch.GeoService;
 import com.leafall.yourtaxi.dispatch.OrderAssignmentService;
 import com.leafall.yourtaxi.dispatch.SearchService;
+import com.leafall.yourtaxi.dto.generatedFiles.GeneratedFileResponseDto;
 import com.leafall.yourtaxi.dto.order.*;
 import com.leafall.yourtaxi.dto.point.PointCostDto;
 import com.leafall.yourtaxi.dto.point.PointCreateDto;
@@ -228,12 +229,12 @@ public class OrderService {
                         trip.getUser().getFullName()), geoService.mapFromDtoToPoint(geo));
         dispatchService.removeFromQueue(getCurrentUserId());
         var newOrder = orderRepository.save(order);
-        orderAssignmentService.removeActiveOffer(id, order.getId());
+        orderAssignmentService.removeActiveOffer(id, getCurrentUserId());
         return orderMapper.mapToDto(newOrder);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public OrderResponseDto cancel(UUID id) {
+    public OrderResponseDto cancel(UUID id, UUID userId) {
         var order = searchService.getOrderFromRedis(id);
         if (order == null) {
             log.warn("Заказ {} из Redis не найден", id);
@@ -245,15 +246,15 @@ public class OrderService {
             log.info("Заказ {} уже имеет статус {}. Невозможно найти для него исполнителя", findedOrder.getId(), findedOrder.getStatus());
             throw new ConflictException("order.error.not-valid");
         }
-        orderAssignmentService.removeActiveOffer(id, findedOrder.getId());
+        orderAssignmentService.removeActiveOffer(findedOrder.getId(), id);
         var driverForOrder = searchService.findDriverForOrder(order.getLongitude(), order.getLatitude(), MAX_RADIUS_SEARCH, id);
 
-        var currentUser = geoService.getDriverLocation(getCurrentUserId()).orElse(null);
+        var currentUser = geoService.getDriverLocation(userId).orElse(null);
 
-        dispatchService.addToQueue(getCurrentUserId());
+        dispatchService.addToQueue(userId);
 
         createOrderHistory(findedOrder, String.format("[Система подбора] Заказ отклонен исполнителем \"%s\". Начинаю искать нового",
-                getCurrentUserId()), geoService.mapFromDtoToPoint(currentUser));
+                userId), geoService.mapFromDtoToPoint(currentUser));
 
         var orderDto = orderMapper.mapToDto(findedOrder);
 
@@ -372,6 +373,22 @@ public class OrderService {
         return orderMapper.mapToDto(newOrder);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public OrderResponseDto delete(UUID id) {
+        var order = orderRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.info("Заказ {} не найден", id);
+                    return new NotFoundException("order.error.not-found");
+                });
+        orderRepository.delete(order);
+        return orderMapper.mapToDto(order);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteAll() {
+        orderRepository.deleteAll();
+    }
+
     private TripEntity validateActualTrip() {
         var userId = getCurrentUserId();
         var user = userRepository.findById(userId)
@@ -386,6 +403,7 @@ public class OrderService {
         orderHistory.setStatus(order.getStatus());
         orderHistory.setMessage(message);
         orderHistory.setPoint(point);
+        log.info("Начало создания истории заказа id=\"{}\" status=\"{}\" - \"{}\"", order.getId(), order.getStatus(), message);
         orderHistoryRepository.save(orderHistory);
     }
 }

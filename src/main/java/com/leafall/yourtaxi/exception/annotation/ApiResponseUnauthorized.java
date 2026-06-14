@@ -1,7 +1,10 @@
 package com.leafall.yourtaxi.exception.annotation;
 
 import com.leafall.yourtaxi.dto.ErrorDto;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.links.Link;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -17,6 +20,8 @@ import java.lang.annotation.Target;
 @ApiResponse(responseCode = "401", description = "Неавторизован",
         content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ErrorDto.class)) )
+                schema = @Schema(implementation = ErrorDto.class))
+
+)
 public @interface ApiResponseUnauthorized {
 }

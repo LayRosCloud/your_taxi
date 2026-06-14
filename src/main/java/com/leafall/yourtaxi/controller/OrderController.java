@@ -1,30 +1,31 @@
 package com.leafall.yourtaxi.controller;
 
+import com.leafall.yourtaxi.dto.generatedFiles.GeneratedFileResponseDto;
 import com.leafall.yourtaxi.dto.order.*;
 import com.leafall.yourtaxi.dto.point.PointCostDto;
-import com.leafall.yourtaxi.entity.OrderEntity;
 import com.leafall.yourtaxi.exception.annotation.*;
 import com.leafall.yourtaxi.service.OrderService;
-import com.leafall.yourtaxi.utils.pagination.PaginationCursor;
-import com.leafall.yourtaxi.utils.pagination.PaginationParams;
 import com.leafall.yourtaxi.utils.pagination.PaginationResponse;
 import com.leafall.yourtaxi.utils.request.OrderQueryDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Date;
 import java.util.UUID;
 
 import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
@@ -193,13 +194,14 @@ public class OrderController {
     }
 
     @MessageMapping("/v1/orders/cancel/{id}")
-    public void cancelOrder(@DestinationVariable UUID id) {
-        service.cancel(id);
+    public void cancelOrder(@DestinationVariable UUID id, SimpMessageHeaderAccessor headerAccessor) {
+        UUID driverId = UUID.fromString((String) headerAccessor.getSessionAttributes().get("DRIVER_ID"));
+        service.cancel(id, driverId);
     }
 
     @PostMapping("/v1/orders/{id}/cancel")
     public ResponseEntity<OrderResponseDto> cancel(@PathVariable UUID id) {
-        var result = service.cancel(id);
+        var result = service.cancel(id, getCurrentUserId());
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -220,4 +222,38 @@ public class OrderController {
         messagingTemplate.convertAndSend("/topic/orders/rejecting", order);
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
+
+    @DeleteMapping("/v1/orders")
+    @Operation(
+            summary = "Удалить заказ по id",
+            description = "Удаление заказа по id (только диспетчер)"
+    )
+    @ApiResponse(description = "Заказы успешно удалились", responseCode = "204")
+    @ApiResponseUnauthorized
+    @ApiResponseNotFound
+    @PreAuthorize("hasAuthority('DISPATCHER')")
+    public ResponseEntity<Void> deleteAll() {
+        log.info("Начало удаления всех заказов");
+        service.deleteAll();
+        log.info("Заказы успешно удалились");
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @DeleteMapping("/v1/orders/{id}")
+    @Operation(
+            summary = "Удалить заказ по id",
+            description = "Удаление заказа по id (только диспетчер)"
+    )
+    @ApiResponse(description = "Успешно удалился заказ", responseCode = "200")
+    @ApiResponseUnauthorized
+    @ApiResponseNotFound
+    @PreAuthorize("hasAuthority('DISPATCHER')")
+    public ResponseEntity<OrderResponseDto> delete(@PathVariable UUID id) {
+        log.info("Удаление заказа {}", id);
+        var result = service.delete(id);
+        log.info("Заказ успешно удалился {}", id);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+
 }

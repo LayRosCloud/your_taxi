@@ -18,6 +18,7 @@ import java.util.UUID;
 @Repository
 public interface OrderRepository extends JpaRepository<OrderEntity, UUID>, JpaSpecificationExecutor<OrderEntity> {
     List<OrderEntity> findAllByUserAndStatusNotIn(UserEntity user, Collection<OrderStatus> status);
+    List<OrderEntity> findAllByCreatedAtBetween(Long createdAt, Long createdAt2);
     List<OrderEntity> findAllByExecutorAndStatusNotIn(TripEntity executor, Collection<OrderStatus> status);
     List<OrderEntity> findAllByPlannerDriverAndScheduledStartTimeBetween(UserEntity plannerDriver, Long scheduledStartTime, Long scheduledStartTime2);
     @Query("SELECT o FROM OrderEntity o JOIN o.executor e WHERE e.id = :executorId")

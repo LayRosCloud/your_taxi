@@ -57,6 +57,7 @@ services:
       - ${EXPOSE_SERVER_PORT}:${SERVER_PORT}
     volumes:
       - ./logs:/app/logs
+      - ./uploads:/app/uploads
   pg_taxi:
     image: "postgis/postgis:15-3.4"
     container_name: pg_taxi

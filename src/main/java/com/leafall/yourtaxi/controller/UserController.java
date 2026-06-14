@@ -38,7 +38,8 @@ public class UserController {
     @PostMapping("/v1/users/signin")
     @Operation(
             summary = "Авторизация",
-            description = "Авторизация аккаунта через email, password, если акк не активирован, авторизация не удастся"
+            description = "Авторизация аккаунта через email, password, если акк не активирован, авторизация не удастся",
+            operationId = "v1_users_signin"
     )
     @ApiResponseBadRequest
     @ApiResponseNotFound
