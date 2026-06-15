@@ -133,6 +133,24 @@ public class OrderService {
         return new PaginationResponse<>(result, new PaginationCursor(params, orders.getTotalElements()));
     }
 
+    @Transactional(readOnly = true)
+    public OrderResponseDto findById(UUID id, UUID userId) {
+        var order = orderRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("order.error.not-found"));
+        var user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("user.error.not-found"));
+        var mappedDto = orderMapper.mapToDto(order);
+        if (user.getRole().equals(UserRole.DISPATCHER)) {
+            return mappedDto;
+        }
+        boolean isOwner = order.getUser().getId().equals(userId);
+        boolean isExecutor = order.getExecutor() != null && order.getExecutor().getUser().getId().equals(userId);
+        boolean isPlanner = order.getPlannerDriver() != null && order.getPlannerDriver().getId().equals(userId);
+        if (!isOwner && !isExecutor && !isPlanner) {
+            throw new ForbiddenException("base.error.forbidden");
+        }
+        return mappedDto;
+    }
+
     public PointCostDto getCostAndDuration(OrderCostDto dto) {
         var distances = geoService.getDistance(dto.getFrom(), dto.getTo());
         if (distances.getRoutes().size() == 0) {

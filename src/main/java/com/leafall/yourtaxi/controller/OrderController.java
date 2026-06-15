@@ -68,6 +68,21 @@ public class OrderController {
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 
+    @GetMapping("/v1/orders/{id}")
+    @Operation(
+            summary = "Получить заказ по id",
+            description = "Получить заказ по id"
+    )
+    @ApiResponseUnauthorized
+    @ApiResponseNotFound
+    @ApiResponse(description = "Получил заказ по id", responseCode = "200")
+    public ResponseEntity<OrderResponseDto> findById(@PathVariable UUID id) {
+        log.info("Начало получения заказа по id={} пользователем {}", id, getCurrentUserId());
+        var orders = service.findById(id, getCurrentUserId());
+        log.info("Заказ успешно получен {}", id);
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
     @PostMapping("/v1/orders/cost")
     @Operation(
             summary = "Посчитать стоимость поездки и её длительность",
