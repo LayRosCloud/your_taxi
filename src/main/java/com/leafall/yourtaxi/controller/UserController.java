@@ -4,6 +4,7 @@ import com.leafall.yourtaxi.dto.token.TokenHolder;
 import com.leafall.yourtaxi.dto.user.*;
 import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.exception.annotation.*;
+import com.leafall.yourtaxi.helper.ratelimit.RateLimit;
 import com.leafall.yourtaxi.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,6 +41,7 @@ public class UserController {
     )
     @ApiResponseBadRequest
     @ApiResponseNotFound
+    @RateLimit(maxRequests = 5, timeWindowSeconds = 900)
     @ApiResponse(responseCode = "200", description = "Успешная авторизация")
     public ResponseEntity<SuccessAuthDto> signIn(@RequestBody @Valid SignInDto dto) {
         log.info("Начало авторизации пользователя: email=\"{}\"", dto.getEmail());

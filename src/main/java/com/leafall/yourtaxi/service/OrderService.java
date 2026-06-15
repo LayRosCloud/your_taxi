@@ -232,7 +232,9 @@ public class OrderService {
             order.setId(newOrder.getId());
             order.setLatitude(dto.getFrom().getLatitude());
             order.setLongitude(dto.getFrom().getLongitude());
-            order.setIds(Set.of(driverId.toString()));
+            var set = new HashSet<String>();
+            set.add(driverId.toString());
+            order.setIds(set);
             log.info("Заказ будет отправлен исполнителю {}", driverId);
             searchService.addToOrderQueue(order);
             messagingTemplate.convertAndSendToUser(driverId.toString(), "/queue/orders/new", orderDto);
