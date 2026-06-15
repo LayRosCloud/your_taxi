@@ -20,6 +20,8 @@ services:
       dockerfile: Dockerfile
       context: .
     restart: always
+    tty: true
+    stdin_open: true
     user: "1000:1000"
     environment:
       - "DB_PASS=${DB_PASS}"
