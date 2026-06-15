@@ -7,10 +7,7 @@ import com.leafall.yourtaxi.exception.annotation.*;
 import com.leafall.yourtaxi.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.tags.Tags;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +62,36 @@ public class UserController {
         var user = service.signUp(dto);
         log.info("Пользователь \"{}\" успешно зарегистрирован: id={}", dto.getEmail(), user.getUser().getId());
         return new ResponseEntity<>(user, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/v1/users/forgot/password")
+    @Operation(
+            summary = "Забыли пароль",
+            description = "Отправка письма на почту с кодом о восстановлении пароля"
+    )
+    @ApiResponseBadRequest
+    @ApiResponseConflict
+    @ApiResponse(responseCode = "204", description = "Успешно отправилось")
+    public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordDto dto) {
+        log.info("Начало восстановления пароль: email=\"{}\"", dto.getEmail());
+        var result = service.forgotPassword(dto);
+        log.info("Отправилось ли сообщение: {}", result);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PostMapping("/v1/users/forgot/password/verify")
+    @Operation(
+            summary = "Верификация кода для получения токенов",
+            description = "Верификация кода чтобы получить токены для смены пароля"
+    )
+    @ApiResponseBadRequest
+    @ApiResponseConflict
+    @ApiResponse(responseCode = "200", description = "Успешно отправилось")
+    public ResponseEntity<SuccessAuthDto> verifyForgotPassword(@RequestBody @Valid VerifyForgotPasswordDto dto) {
+        log.info("Начало восстановления пароль: email=\"{}\" code=\"{}\"", dto.getEmail(), dto.getCode());
+        var result = service.verifyPasswordForgot(dto);
+        log.info("Успешно верифицировался пользователь id={}", result.getUser().getId());
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @PutMapping("/v1/users/current")

@@ -7,11 +7,10 @@ import com.leafall.yourtaxi.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -152,22 +151,28 @@ public class OrderAssignmentService {
     }
 
     public void removeActiveOffer(UUID orderId, UUID driverId) {
-        String luaScript =
-                "local key = KEYS[1] " +
-                        "local orderId = ARGV[1] " +
-                        "local driverId = ARGV[2] " +
-                        "local members = redis.call('ZRANGE', key, 0, -1) " +
-                        "for i, member in ipairs(members) do " +
-                        "   local offer = cjson.decode(member) " +
-                        "   if tostring(offer.orderId) == orderId and offer.driverId == driverId then " +
-                        "       redis.call('ZREM', key, member) " +
-                        "       return 1 " +
-                        "   end " +
-                        "end " +
-                        "return 0";
+        var members = redisTemplate.opsForZSet().range(ACTIVE_OFFERS_KEY, 0, -1);
+        if (members == null || members.isEmpty()) {
+            log.info("Remove offer result: 0 for orderId={} driverId={}", orderId, driverId);
+            return;
+        }
+        for (Object member : members) {
+            try {
+                JsonNode offer = objectMapper.readTree(member.toString());
+                String offerOrderId = offer.get("orderId").asString();
+                String offerDriverId = offer.get("driverId").asString();
 
-        DefaultRedisScript<Long> script = new DefaultRedisScript<>(luaScript, Long.class);
-        redisTemplate.execute(script, Collections.singletonList(ACTIVE_OFFERS_KEY),
-                orderId.toString(), driverId);
+                if (offerOrderId.equals(orderId.toString()) &&
+                        offerDriverId.equals(driverId.toString())) {
+                    redisTemplate.opsForZSet().remove(ACTIVE_OFFERS_KEY, member);
+                    log.info("Removed offer for orderId={} driverId={}", orderId, driverId);
+                    return;
+                }
+            } catch (Exception e) {
+                log.error("Error parsing offer JSON: {}", member, e);
+            }
+        }
+
+        log.info("Remove offer result: 0 for orderId={} driverId={}", orderId, driverId);
     }
 }

@@ -40,6 +40,22 @@ public class EmailService {
 
     @SneakyThrows
     @Async
+    public void sendForgotPassword(final VerificationDto verificationDto) {
+        var mimeMessage = mailSender.createMimeMessage();
+        var helper = new MimeMessageHelper(mimeMessage, true);
+        log.info("Начало отправки на почту {}", verificationDto.getEmail());
+        var context = getContextForVerificationCode(verificationDto.getCode(), verificationDto.getUsername());
+        var htmlContent = templateEngine.process("forgotPassword.html", context);
+
+        helper.setTo(verificationDto.getEmail());
+        helper.setSubject("Ваше Такси - Забыли пароль");
+        helper.setText(htmlContent, true);
+
+        mailSender.send(mimeMessage);
+    }
+
+    @SneakyThrows
+    @Async
     public void sendNewPasswordForEmployee(final NewPasswordDto dto) {
         var mimeMessage = mailSender.createMimeMessage();
         var helper = new MimeMessageHelper(mimeMessage, true);

@@ -62,6 +62,6 @@ public class OrderEntity implements CreatedAtTimestampAware, UpdatedAtTimestampA
     @JdbcType(PostgreSQLEnumJdbcType.class)
     private OrderPaymentType paymentType;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "order")
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "order")
     private List<PointEntity> points;
 }

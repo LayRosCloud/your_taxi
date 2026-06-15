@@ -18,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 import static com.leafall.yourtaxi.utils.CodeUtils.generateCode;
 import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
 
@@ -126,6 +128,34 @@ public class UserService {
         return mapper.mapToDto(saved);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public boolean forgotPassword(ForgotPasswordDto dto) {
+        var user = repository.findByEmail(dto.getEmail().toLowerCase()).orElse(null);
+        if (user == null) {
+            log.info("Пользователь не был найден. Не информируем пользователя в целях безопасности");
+            return false;
+        }
+        log.info("Пользователь был найден. Отправляем код");
+        var code = new CodeEntity();
+        code.setUser(user);
+        code.setCode(generateCode());
+        code = codeRepository.save(code);
+        emailService.sendForgotPassword(VerificationDto.builder()
+                .code(code.getCode())
+                .email(user.getEmail())
+                .username(user.getFullName())
+                .build()
+        );
+        return true;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public SuccessAuthDto verifyPasswordForgot(VerifyForgotPasswordDto dto) {
+        var user = repository.findByEmail(dto.getEmail().toLowerCase())
+                .orElseThrow(() -> new BadRequestException("code.error.invalid"));
+        return verify(user, dto.getCode());
+    }
+
     @Transactional
     public TokenHolder refresh(RefreshDto dto) {
         return tokenService.refresh(dto.getRefreshToken());
@@ -135,11 +165,20 @@ public class UserService {
     public SuccessAuthDto verifyEmail(VerifyEmailDto dto) {
         var user = repository.findById(dto.getId())
                 .orElseThrow(() -> new NotFoundException("user.error.not-found"));
-        var code = codeRepository.findByCodeAndUser(dto.getCode(), user)
+        return verify(user, dto.getCode());
+    }
+
+    @Transactional
+    public void logout(String token) {
+        tokenService.logout(token);
+    }
+
+    private SuccessAuthDto verify(UserEntity user, String code) {
+        var entity = codeRepository.findByCodeAndUser(code, user)
                 .orElseThrow(() -> new BadRequestException("code.error.invalid"));
         user.setIsActive(true);
         var newUser = repository.save(user);
-        codeRepository.delete(code);
+        codeRepository.delete(entity);
         var accessToken = tokenService.generateAccessToken(user.getId());
         var refreshToken = tokenService.generateRefreshToken(user.getId());
         return SuccessAuthDto.builder()
@@ -149,11 +188,6 @@ public class UserService {
                         .build())
                 .user(mapper.mapToDto(newUser))
                 .build();
-    }
-
-    @Transactional
-    public void logout(String token) {
-        tokenService.logout(token);
     }
 
     private SuccessAuthDto sendIfNotActiveAccount(UserEntity user) {

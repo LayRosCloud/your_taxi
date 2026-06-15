@@ -262,7 +262,7 @@ public class OrderService {
             log.info("Заказ {} уже имеет статус {}. Невозможно найти для него исполнителя", findedOrder.getId(), findedOrder.getStatus());
             throw new ConflictException("order.error.not-valid");
         }
-        orderAssignmentService.removeActiveOffer(findedOrder.getId(), id);
+        orderAssignmentService.removeActiveOffer(findedOrder.getId(), userId);
         var driverForOrder = searchService.findDriverForOrder(order.getLongitude(), order.getLatitude(), MAX_RADIUS_SEARCH, id);
 
         var currentUser = geoService.getDriverLocation(userId).orElse(null);

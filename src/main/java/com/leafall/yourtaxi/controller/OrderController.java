@@ -231,8 +231,8 @@ public class OrderController {
 
     @DeleteMapping("/v1/orders")
     @Operation(
-            summary = "Удалить заказ по id",
-            description = "Удаление заказа по id (только диспетчер)"
+            summary = "Удалить заказы",
+            description = "Удаление заказы (только диспетчер)"
     )
     @ApiResponse(description = "Заказы успешно удалились", responseCode = "204")
     @ApiResponseUnauthorized

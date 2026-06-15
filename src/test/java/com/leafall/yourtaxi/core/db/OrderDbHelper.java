@@ -19,6 +19,17 @@ import java.util.List;
 public class OrderDbHelper {
     private final OrderRepository orderRepository;
     private final PointRepository pointRepository;
+    private final UserDbHelper userDbHelper;
+    public OrderEntity save() {
+        var generated = OrderEntityUtils.generate(userDbHelper.save(), null);
+
+        var order = orderRepository.save(generated);
+        var from = OrderEntityUtils.generatePoint(0, order);
+        var to = OrderEntityUtils.generatePoint(1, order);
+        var points = pointRepository.saveAll(List.of(from, to));
+        order.setPoints(points);
+        return order;
+    }
 
     public OrderEntity save(UserEntity user, @Nullable TripEntity trip) {
         var generated = OrderEntityUtils.generate(user, trip);
