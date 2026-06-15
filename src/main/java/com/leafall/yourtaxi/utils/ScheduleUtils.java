@@ -78,7 +78,7 @@ public class ScheduleUtils {
                     } else {
                         log.info("Для заказ {} водитель второй не нашелся, отменяю заказ", offer.getOrderId());
                         history.setMessage("[Система подбора] Сотрудник не нашелся, отменяю заказ");
-                        messagingTemplate.convertAndSendToUser(offer.getUserId().toString(), "/queue/orders/rejected", offer);
+                        messagingTemplate.convertAndSendToUser(offer.getUserId().toString(), "/queue/orders/reject", offer);
                         history.setOrderStatus(OrderStatus.REJECTED);
                     }
                     list.add(history);
