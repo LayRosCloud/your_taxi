@@ -151,9 +151,9 @@ public class UserController {
     @ApiResponseNotFound
     @ApiResponse(responseCode = "200", description = "Успешное обновление токена")
     public ResponseEntity<TokenHolder> refresh(@RequestBody @Valid RefreshDto dto) {
-        log.info("Начало рефреша аккаунта {}", getCurrentUser());
+        log.info("Начало рефреша аккаунта {}", dto.getRefreshToken());
         var user = service.refresh(dto);
-        log.info("Получена новая пара токенов для аккаунта {}", getCurrentUserId());
+        log.info("Получена новая пара токенов для аккаунта");
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
