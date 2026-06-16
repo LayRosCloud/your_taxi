@@ -27,6 +27,7 @@ public class LoggerMiddleware implements Filter {
         }
         response.setHeader(HEADER_CORRELATION_ID, correlationId);
         MDC.put(HEADER_CORRELATION_LOG_ID, correlationId);
+        MDC.put("url", httpRequest.getRequestURI());
         try {
             filterChain.doFilter(servletRequest, servletResponse);
         } finally {
