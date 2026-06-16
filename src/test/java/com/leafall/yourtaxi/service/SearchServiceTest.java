@@ -5,14 +5,21 @@ import com.leafall.yourtaxi.dispatch.DriverDispatchService;
 import com.leafall.yourtaxi.dispatch.GeoService;
 import com.leafall.yourtaxi.dispatch.SearchService;
 import com.leafall.yourtaxi.dto.order.OrderRedisWaitingDto;
+import com.leafall.yourtaxi.entity.TripEntity;
+import com.leafall.yourtaxi.entity.UserEntity;
+import com.leafall.yourtaxi.entity.enums.TripStatus;
+import com.leafall.yourtaxi.repository.TripRepository;
+import com.leafall.yourtaxi.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Point;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,6 +28,7 @@ import static com.leafall.yourtaxi.dispatch.GeoService.DRIVER_COORDS_PREFIX;
 import static com.leafall.yourtaxi.dispatch.GeoService.GEO_KEY;
 import static com.leafall.yourtaxi.dispatch.SearchService.DRIVER_LOCK_PREFIX;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class SearchServiceTest extends BaseIntegrationTest {
     @Autowired
@@ -29,6 +37,10 @@ public class SearchServiceTest extends BaseIntegrationTest {
     private DriverDispatchService dispatchService;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+    @MockitoBean
+    private UserRepository userRepository;
+    @MockitoBean
+    private TripRepository tripRepository;
 
     private UUID driver1;
     private UUID driver2;
@@ -42,6 +54,8 @@ public class SearchServiceTest extends BaseIntegrationTest {
         driver1 = UUID.fromString("92b59163-bbf0-4aee-8b44-bd5b8e210d82");
         driver2 = UUID.fromString("70d34721-9971-46d0-a850-d018f10eecca");
         driver3 = UUID.fromString("9d1d2f77-f420-46a2-80b5-0e74fcedcf36");
+
+
         redisTemplate.delete(DRIVER_LOCK_PREFIX + driver1);
         redisTemplate.delete(DRIVER_LOCK_PREFIX + driver2);
         redisTemplate.delete(DRIVER_LOCK_PREFIX + driver3);
@@ -77,9 +91,18 @@ public class SearchServiceTest extends BaseIntegrationTest {
     @DisplayName("Drivers are assigned in turns FIFO")
     void testQueueOrder() {
         // given
+        UserEntity mockUser = new UserEntity();
+        when(userRepository.findById(driver1)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findById(driver2)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findById(driver3)).thenReturn(Optional.of(mockUser));
+        TripEntity trip = new TripEntity();
+        trip.setStatus(TripStatus.FREE);
+        when(tripRepository.findByUserAndEndAtIsNull(mockUser)).thenReturn(Optional.of(trip));
+
         dispatchService.addToQueue(driver1);
         dispatchService.addToQueue(driver2);
         dispatchService.addToQueue(driver3);
+
         // when
         UUID found = searchService.findDriverForOrder(37.611, 55.751, 1.0, orderId);
 
@@ -94,6 +117,11 @@ public class SearchServiceTest extends BaseIntegrationTest {
     @DisplayName("If driver is so far")
     void testFarDriverReturnsToTail() {
         // given
+        UserEntity mockUser = new UserEntity();
+        when(userRepository.findById(driver3)).thenReturn(Optional.of(mockUser));
+        TripEntity trip = new TripEntity();
+        trip.setStatus(TripStatus.FREE);
+        when(tripRepository.findByUserAndEndAtIsNull(mockUser)).thenReturn(Optional.of(trip));
         dispatchService.addToQueue(driver3);
 
         // when
@@ -107,6 +135,12 @@ public class SearchServiceTest extends BaseIntegrationTest {
     @DisplayName("Handle reject: Race condition")
     void testRejectHandling() {
         //given
+        UserEntity mockUser = new UserEntity();
+        when(userRepository.findById(driver1)).thenReturn(Optional.of(mockUser));
+        when(userRepository.findById(driver2)).thenReturn(Optional.of(mockUser));
+        TripEntity trip = new TripEntity();
+        trip.setStatus(TripStatus.FREE);
+        when(tripRepository.findByUserAndEndAtIsNull(mockUser)).thenReturn(Optional.of(trip));
         dispatchService.addToQueue(driver1);
         dispatchService.addToQueue(driver2);
 
@@ -132,6 +166,11 @@ public class SearchServiceTest extends BaseIntegrationTest {
     @DisplayName("Blocked concurrency locked")
     void testConcurrencyLock() throws InterruptedException {
         //given
+        UserEntity mockUser = new UserEntity();
+        when(userRepository.findById(driver1)).thenReturn(Optional.of(mockUser));
+        TripEntity trip = new TripEntity();
+        trip.setStatus(TripStatus.FREE);
+        when(tripRepository.findByUserAndEndAtIsNull(mockUser)).thenReturn(Optional.of(trip));
         dispatchService.addToQueue(driver1);
 
         // when
@@ -160,6 +199,11 @@ public class SearchServiceTest extends BaseIntegrationTest {
     void testBusyStatusAndChangeFree() {
         //given
         String key = DRIVER_STATUS + driver1;
+        UserEntity mockUser = new UserEntity();
+        when(userRepository.findById(driver1)).thenReturn(Optional.of(mockUser));
+        TripEntity trip = new TripEntity();
+        trip.setStatus(TripStatus.FREE);
+        when(tripRepository.findByUserAndEndAtIsNull(mockUser)).thenReturn(Optional.of(trip));
         dispatchService.addToQueue(driver1);
         redisTemplate.opsForHash().put(key, "status", "BUSY");
         redisTemplate.opsForHash().put(DRIVER_STATUS + driver2, "status", "BUSY");
