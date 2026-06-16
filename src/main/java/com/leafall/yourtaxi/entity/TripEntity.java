@@ -1,9 +1,12 @@
 package com.leafall.yourtaxi.entity;
 
 import com.leafall.yourtaxi.entity.aware.CreatedAtTimestampAware;
+import com.leafall.yourtaxi.entity.enums.TripStatus;
 import com.leafall.yourtaxi.entity.listener.TimestampListener;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.dialect.type.PostgreSQLEnumJdbcType;
 
 import java.util.UUID;
 
@@ -26,6 +29,11 @@ public class TripEntity implements CreatedAtTimestampAware {
 
     @Column(name = "created_at")
     private Long createdAt;
+
+    @Column(name = "status", nullable = false, columnDefinition = "trips_status_enum")
+    @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    private TripStatus status;
 
     @Column(name = "end_at")
     private Long endAt;

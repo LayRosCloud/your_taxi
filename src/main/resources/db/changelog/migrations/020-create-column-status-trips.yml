@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 020-create-column-status-trips
+      changes:
+        - sql:
+            "CREATE TYPE trips_status_enum AS ENUM('FREE', 'SOON_FREE', 'BUSY')"
+        - addColumn:
+            tableName: trips
+            columns:
+              - column:
+                  name: status
+                  type: trips_status_enum
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            tableName: feedbacks
+            columns:
+              - column:
+                  name: status
+        - sql:
+            "DROP TYPE IF EXISTS trips_status_enum;"

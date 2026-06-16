@@ -1,5 +1,9 @@
 package com.leafall.yourtaxi.dispatch;
 
+import com.leafall.yourtaxi.entity.enums.TripStatus;
+import com.leafall.yourtaxi.exception.NotFoundException;
+import com.leafall.yourtaxi.repository.TripRepository;
+import com.leafall.yourtaxi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -14,18 +18,32 @@ import static com.leafall.yourtaxi.dispatch.SearchService.DRIVER_LOCK_PREFIX;
 @Slf4j
 public class DriverDispatchService {
     private final RedisTemplate<String, Object> redisTemplate;
+    private final TripRepository tripRepository;
+    private final UserRepository userRepository;
     public final static String DRIVER_STATUS = "taxi:driver:";
 
     public void addToQueue(UUID driverId) {
         String locationKey = DRIVER_STATUS + driverId;
-        removeFromQueue(driverId);
+        var user = userRepository.findById(driverId)
+                .orElseThrow(() -> new NotFoundException("user.error.not-found"));
+        var trip = tripRepository.findByUserAndEndAtIsNull(user)
+                .orElseThrow(() -> new NotFoundException("base.error.not-found"));
+        trip.setStatus(TripStatus.FREE);
+        tripRepository.save(trip);
         redisTemplate.opsForHash().put(locationKey, "status", "FREE");
         redisTemplate.delete(DRIVER_LOCK_PREFIX + driverId);
+
         log.info("Driver {} add to queue waiting", driverId);
     }
 
     public void removeFromQueue(UUID driverId) {
         String locationKey = DRIVER_STATUS + driverId;
+        var user = userRepository.findById(driverId)
+                .orElseThrow(() -> new NotFoundException("user.error.not-found"));
+        var trip = tripRepository.findByUserAndEndAtIsNull(user)
+                .orElseThrow(() -> new NotFoundException("base.error.not-found"));
+        trip.setStatus(TripStatus.BUSY);
+        tripRepository.save(trip);
         redisTemplate.opsForHash().put(locationKey, "status", "BUSY");
     }
 }

@@ -6,6 +6,8 @@ import com.leafall.yourtaxi.dto.point.PointCreateDto;
 import com.leafall.yourtaxi.dto.point.PointOSRMResponse;
 import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.repository.OrderRepository;
+import com.leafall.yourtaxi.repository.TripRepository;
+import com.leafall.yourtaxi.repository.UserRepository;
 import com.leafall.yourtaxi.utils.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,8 @@ public class GeoService {
     public static final String GEO_KEY = "taxi:geo_index";
     private final GeometryFactory geometryFactory;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final TripRepository tripRepository;
+    private final UserRepository userRepository;
     @Value("${services.osrm.host}")
     private String host;
 
@@ -100,9 +104,19 @@ public class GeoService {
         if (extractedRedis == null) {
             return Optional.empty();
         }
-        var status = redisTemplate.opsForHash().get(DRIVER_STATUS + driverId, "status");
+        var driverStatus = DRIVER_STATUS + driverId;
+        var status = redisTemplate.opsForHash().get(driverStatus, "status");
         if (status != null) {
             extractedRedis.setStatus(status.toString());
+        } else {
+            var userOptional = userRepository.findById(driverId);
+            if (userOptional.isPresent()) {
+                var trip = tripRepository.findByUserAndEndAtIsNull(userOptional.get());
+                if (trip.isPresent()) {
+                    redisTemplate.opsForHash().put(driverStatus, "status", trip.get().getStatus().name());
+                    extractedRedis.setStatus(trip.get().getStatus().name());
+                }
+            }
         }
         return Optional.of(extractedRedis);
     }

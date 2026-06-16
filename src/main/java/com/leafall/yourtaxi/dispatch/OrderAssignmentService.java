@@ -4,6 +4,8 @@ import com.leafall.yourtaxi.dto.OfferAssignment;
 import com.leafall.yourtaxi.dto.order.OrderRedisWaitingDto;
 import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.repository.OrderRepository;
+import com.leafall.yourtaxi.repository.TripRepository;
+import com.leafall.yourtaxi.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

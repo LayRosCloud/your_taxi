@@ -66,7 +66,6 @@ public class RateLimitFilter implements Filter {
         } else if (uri.contains("/v1/users/signup")) {
             return EndpointType.REGISTRATION;
         } else if (uri.startsWith("/")) {
-            log.info("Попал в API");
             return EndpointType.API;
         }
         return EndpointType.OTHER;

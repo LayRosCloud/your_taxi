@@ -5,6 +5,7 @@ import com.leafall.yourtaxi.dto.trip.TripEndDto;
 import com.leafall.yourtaxi.dto.trip.TripResponseDto;
 import com.leafall.yourtaxi.dto.trip.TripStartDto;
 import com.leafall.yourtaxi.entity.TripEntity;
+import com.leafall.yourtaxi.entity.enums.TripStatus;
 import com.leafall.yourtaxi.exception.ConflictException;
 import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.mapper.TripMapper;
@@ -71,6 +72,7 @@ public class TripService {
         var trip = new TripEntity();
         trip.setCar(car);
         trip.setUser(user);
+        trip.setStatus(TripStatus.FREE);
         var newTrip = tripRepository.save(trip);
         var orders = orderRepository.findAllByPlannerDriverAndScheduledStartTimeBetween(user, TimeUtils.getStartOfDayUTC(), TimeUtils.getEndOfDayUTC());
         if (orders.size() > 0) {

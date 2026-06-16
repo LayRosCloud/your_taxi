@@ -19,7 +19,6 @@ import static com.leafall.yourtaxi.dispatch.GeoService.GEO_KEY;
 @RequiredArgsConstructor
 @Slf4j
 public class SearchService {
-    public static final String QUEUE_KEY = "taxi:queue:available";
     public static final String DRIVER_LOCK_PREFIX = "taxi:driver:lock:";
     public static final String ORDERS_KEY = "orders:employees:";
 
