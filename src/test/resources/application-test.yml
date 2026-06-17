@@ -60,4 +60,5 @@ logging:
   charset:
     console: UTF-8
     file: UTF-8
-
+backend:
+  url: ${BACKEND_URL:http://localhost:8080}
