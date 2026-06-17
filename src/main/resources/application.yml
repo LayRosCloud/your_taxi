@@ -1,4 +1,9 @@
 spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
   output:
     ansi:
       enabled: always
@@ -53,6 +58,8 @@ websocket:
   ports: ${WEBSOCKET_PORTS}
 frontend:
   url: ${FRONTEND_URL}
+backend:
+  url: ${BACKEND_URL}
 services:
   osrm:
     host: ${OSRM_HOST}

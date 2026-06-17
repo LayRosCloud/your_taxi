@@ -6,14 +6,18 @@ import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.exception.annotation.*;
 import com.leafall.yourtaxi.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jdk.jfr.ContentType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
 
@@ -62,6 +66,21 @@ public class UserController {
         var user = service.signUp(dto);
         log.info("Пользователь \"{}\" успешно зарегистрирован: id={}", dto.getEmail(), user.getUser().getId());
         return new ResponseEntity<>(user, HttpStatus.CREATED);
+    }
+
+    @PatchMapping(value = "/v1/users/current/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+            summary = "Загрузить новую аватарку",
+            description = "Обновить свою новую аватарку"
+    )
+    @ApiResponseBadRequest
+    @ApiResponseUnauthorized
+    @ApiResponse(responseCode = "200", description = "Успешно обновился аватар")
+    public ResponseEntity<UserResponseDto> uploadAvatar(@RequestParam(name = "file") MultipartFile file) {
+        log.info("Начало обновления аватара пользователем {}", getCurrentUserId());
+        var user = service.uploadAvatar(getCurrentUserId(),file);
+        log.info("Аватар был обновлен {}", getCurrentUserId());
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @PostMapping("/v1/users/forgot/password")
@@ -156,7 +175,20 @@ public class UserController {
         log.info("Получена новая пара токенов для аккаунта");
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
-
+    @DeleteMapping("/v1/users/current/avatar")
+    @Operation(
+            summary = "Удалить аватарку",
+            description = "Удалить аватарку, если она есть"
+    )
+    @ApiResponseBadRequest
+    @ApiResponseUnauthorized
+    @ApiResponse(responseCode = "200", description = "Успешно удалился аватар")
+    public ResponseEntity<UserResponseDto> deleteAvatar() {
+        log.info("Начало удаления аватара пользователем {}", getCurrentUserId());
+        var user = service.deleteAvatar(getCurrentUserId());
+        log.info("Аватар был удален {}", getCurrentUserId());
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
     @PostMapping("/v1/users/logout")
     @Operation(
             summary = "Выход из аккаунта",

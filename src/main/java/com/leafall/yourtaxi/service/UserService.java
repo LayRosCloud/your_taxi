@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -34,6 +35,7 @@ public class UserService {
     private final UserInfoRepository userInfoRepository;
     private final CodeRepository codeRepository;
     private final UserMapper mapper;
+    private final FileUploadService fileUploadService;
 
     public UserResponseDto getCurrentUser() {
         var user = repository.findById(getCurrentUserId())
@@ -55,6 +57,37 @@ public class UserService {
         }
 
         return sendIfNotActiveAccount(user);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public UserResponseDto uploadAvatar(UUID userId, MultipartFile file) {
+        var toSave = repository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("user.error.not-found"));
+        var avatarFileName = fileUploadService.store(file, "avatars");
+        if (toSave.getAvatar() != null) {
+            try {
+                fileUploadService.delete("avatars", toSave.getAvatar());
+            } catch (Exception ignored) {}
+        }
+        toSave.setAvatar(avatarFileName);
+
+        var user = repository.save(toSave);
+        return mapper.mapToDto(user);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public UserResponseDto deleteAvatar(UUID userId) {
+        var toSave = repository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("user.error.not-found"));
+        if (toSave.getAvatar() == null) {
+            throw new BadRequestException("base.error.bad-request");
+        }
+        try {
+            fileUploadService.delete("avatars", toSave.getAvatar());
+        } catch (Exception ignored) {}
+        toSave.setAvatar(null);
+        var user = repository.save(toSave);
+        return mapper.mapToDto(user);
     }
 
     @Transactional

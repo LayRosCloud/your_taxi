@@ -5,8 +5,8 @@ import com.leafall.yourtaxi.dto.user.SignUpDto;
 import com.leafall.yourtaxi.dto.user.UserResponseDto;
 import com.leafall.yourtaxi.entity.UserEntity;
 import org.mapstruct.Mapper;
+import org.springframework.beans.factory.annotation.Value;
 
-@Mapper(componentModel = "spring")
 public interface UserMapper {
     UserEntity mapToEntity(SignUpDto dto);
     UserEntity mapToEntity(EmployeeCreateDto dto);

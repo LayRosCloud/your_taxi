@@ -36,6 +36,9 @@ public class UserEntity implements CreatedAtTimestampAware, UpdatedAtTimestampAw
     @JdbcType(PostgreSQLEnumJdbcType.class)
     private UserRole role;
 
+    @Column(name = "avatar", nullable = true)
+    private String avatar;
+
     @Column(name = "created_at", nullable = false)
     private Long createdAt;
 

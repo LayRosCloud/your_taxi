@@ -16,6 +16,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
@@ -33,8 +34,8 @@ public class ExceptionProvider {
     public ResponseEntity<ErrorDto> handleException(NoResourceFoundException exception, Locale locale) {
         log.warn(exception.getMessage());
         return new ResponseEntity<>(
-                new ErrorDto(405, List.of("Method is not allowed")),
-                HttpStatus.METHOD_NOT_ALLOWED
+                new ErrorDto(404, List.of("Route is not found")),
+                HttpStatus.NOT_FOUND
         );
     }
 
@@ -63,13 +64,23 @@ public class ExceptionProvider {
                 .getFieldErrors().stream()
                 .map(x -> x.getField() + ": " + x.getDefaultMessage())
                 .toList();
-        return new ResponseEntity<>(new ErrorDto(400, errors), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ErrorDto(422, errors), HttpStatus.UNPROCESSABLE_CONTENT);
+    }
+
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorDto> handleMaxSizeException(
+            MaxUploadSizeExceededException e) {
+
+        var errorDto = new ErrorDto(413, List.of(e.getMessage()));
+
+        return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE).body(errorDto);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<String> handleInvalidUUID(MethodArgumentTypeMismatchException ex) {
         if (ex.getRequiredType() != null && ex.getRequiredType().equals(UUID.class)) {
-            return ResponseEntity.badRequest().body("Invalid UUID format: " + ex.getValue());
+            return ResponseEntity.unprocessableContent().body("Invalid UUID format: " + ex.getValue());
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }

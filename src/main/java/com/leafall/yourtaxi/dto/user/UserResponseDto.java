@@ -22,6 +22,8 @@ public class UserResponseDto {
     @Schema(description = "Как к вам обращаться", example = "Григорий")
     @NotNull(message = "{validation.not-null}")
     private String fullName;
+
+    private String avatar;
     @Schema(description = "Роль", example = "USER")
     @NotNull(message = "{validation.not-null}")
     private String role;

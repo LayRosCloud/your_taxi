@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 021-create-column-avatar
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: avatar
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: true
+      rollback:
+        - dropColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: avatar
