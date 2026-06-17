@@ -46,6 +46,7 @@ services:
       - "REFRESH_TTL_MINUTES=${REFRESH_TTL_MINUTES}"
       - "ACCESS_TTL_MINUTES=${ACCESS_TTL_MINUTES}"
       - "FRONTEND_URL=${FRONTEND_URL}"
+      - "BACKEND_URL=${BACKEND_URL}"
     depends_on:
       redis_taxi:
         condition: service_healthy
