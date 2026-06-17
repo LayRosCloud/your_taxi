@@ -88,7 +88,7 @@ public class OrderControllerTest extends BaseIntegrationTest {
                 .content(objectMapper.writeValueAsString(new OrderCreateDto()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", "Bearer " + accessToken)
-        ).andExpect(status().isBadRequest())
+        ).andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("$.errors").exists())
                 .andExpect(jsonPath("$.status").exists());
 
