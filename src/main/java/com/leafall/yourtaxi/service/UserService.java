@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 import static com.leafall.yourtaxi.utils.CodeUtils.generateCode;
@@ -63,6 +64,13 @@ public class UserService {
     public UserResponseDto uploadAvatar(UUID userId, MultipartFile file) {
         var toSave = repository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("user.error.not-found"));
+        if (file.isEmpty()) {
+            throw new BadRequestException("File is empty");
+        }
+        var extension = fileUploadService.getFileExtension(file.getOriginalFilename());
+        if (!List.of(".jpg", ".jpeg", ".png", ".webp", ".avif", ".jxl").contains(extension)) {
+            throw new BadRequestException("Not allowed format file");
+        }
         var avatarFileName = fileUploadService.store(file, "avatars");
         if (toSave.getAvatar() != null) {
             try {
