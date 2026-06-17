@@ -30,6 +30,7 @@ env:
   ACCESS_TTL_MINUTES: ${{ secrets.ACCESS_TTL_MINUTES }}
   FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
   OSRM_HOST: ${{ secrets.OSRM_HOST }}
+  BACKEND_URL: ${{ secrets.BACKEND_URL }}
 jobs:
   build:
     runs-on: ubuntu-latest
