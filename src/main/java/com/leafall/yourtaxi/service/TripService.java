@@ -93,9 +93,9 @@ public class TripService {
                 .orElseThrow(() -> new NotFoundException("car.error.not-found"));
         var trip = tripRepository.findByCarAndUserAndEndAtIsNull(car, user)
                 .orElseThrow(() -> new NotFoundException("trip.error.not-found"));
+        dispatchService.removeFromQueue(userId);
         trip.setEndAt(TimeUtils.getCurrentTimeFromUTC());
         var savedTrip = tripRepository.save(trip);
-        dispatchService.removeFromQueue(userId);
         return tripMapper.mapToDto(savedTrip);
     }
 
