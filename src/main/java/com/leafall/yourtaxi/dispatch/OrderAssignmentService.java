@@ -120,7 +120,9 @@ public class OrderAssignmentService {
             }
             String driverIdStr = result.getId().toString();
             var driverId = UUID.fromString(driverIdStr);
-            if (order != null && order.getIds().contains(driverIdStr)) {
+            var orderChild = new OrderRedisWaitingChildDto();
+            orderChild.setId(driverId.toString());
+            if (order != null && order.getIds().contains(orderChild)) {
                 log.info("Driver {} has already been in this order, skip", driverIdStr);
                 continue;
             }
