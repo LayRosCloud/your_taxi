@@ -46,7 +46,7 @@ jwt:
     secretKey: ${ACCESS_SECRET_KEY:YmFzZTY0ZW5jb2Rlcl9HaG91bEVwdGExMjM0MTJkc2Z2c2Q0M2diZmRz}
     ttlMinutes: ${ACCESS_TTL_MINUTES:60}
   refresh:
-    secretKey: ${REFRESH_SECRET_KEY:YmFzZTY0ZW5jb2Rlcl9HaG91bEVwdGExMjM0MTJkc2Z2c2Q0M2diZmRz}
+    secretKey: ${REFRESH_SECRET_KEY:YmFzZTY0ZW5jb2Rlcl9HaG91bEVwdGExMjM0MTJkc2Z2c2Q0M2diZjJx}
     ttlMinutes: ${REFRESH_TTL_MINUTES:120}
 
 websocket:
