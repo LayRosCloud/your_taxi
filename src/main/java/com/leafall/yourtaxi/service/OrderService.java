@@ -38,6 +38,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.sql.Date;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.leafall.yourtaxi.config.ConstantsConfig.BIG_ORDER_FROM_KEY;
 import static com.leafall.yourtaxi.config.ConstantsConfig.PRICE_KEY;
@@ -232,8 +233,11 @@ public class OrderService {
             order.setId(newOrder.getId());
             order.setLatitude(dto.getFrom().getLatitude());
             order.setLongitude(dto.getFrom().getLongitude());
-            var set = new HashSet<String>();
-            set.add(driverId.toString());
+            var set = new HashSet<OrderRedisWaitingChildDto>();
+            var child = new OrderRedisWaitingChildDto();
+            child.setId(driverId.toString());
+            child.setCreatedAt(TimeUtils.getCurrentTimeFromUTC());
+            set.add(child);
             order.setIds(set);
             log.info("Заказ будет отправлен исполнителю {}", driverId);
             searchService.addToOrderQueue(order);
@@ -295,7 +299,10 @@ public class OrderService {
         var orderDto = orderMapper.mapToDto(findedOrder);
 
         if (driverForOrder != null) {
-            order.getIds().add(driverForOrder.toString());
+            var child = new OrderRedisWaitingChildDto();
+            child.setId(driverForOrder.toString());
+            child.setCreatedAt(TimeUtils.getCurrentTimeFromUTC());
+            order.getIds().add(child);
             searchService.addToOrderQueue(order);
             log.info("Заказу {} будет отправлен новый исполнитель {}", findedOrder.getId(), driverForOrder);
             messagingTemplate.convertAndSendToUser(driverForOrder.toString(), "/queue/orders/new", orderDto);
@@ -410,9 +417,14 @@ public class OrderService {
         var orderResponseAndOrderWaiting = new OrderResponseAndOrderWaiting();
         orderResponseAndOrderWaiting.setOrder(orderMapper.mapToDto(newOrder));
         orderResponseAndOrderWaiting.setDto(orderFromRedis);
-        for (var driverId: orderFromRedis.getIds()) {
-            orderAssignmentService.removeActiveOffer(order.getId(), UUID.fromString(driverId));
+        if (orderFromRedis.getIds().size() > 0) {
+            var sortedList = orderFromRedis.getIds().stream()
+                    .sorted(Comparator.comparing(OrderRedisWaitingChildDto::getCreatedAt).reversed())
+                    .toList();
+            var item = sortedList.get(0);
+            orderAssignmentService.removeActiveOffer(newOrder.getId(), UUID.fromString(item.getId()));
         }
+
         return orderResponseAndOrderWaiting;
     }
 

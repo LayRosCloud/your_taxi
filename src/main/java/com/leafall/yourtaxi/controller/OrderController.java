@@ -26,6 +26,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
+import java.util.Comparator;
 import java.util.UUID;
 
 import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
@@ -236,10 +237,12 @@ public class OrderController {
         var order = service.reject(id);
         log.info("Заказ {} отменен заказчиком {}.", id, getCurrentUserId());
         log.debug("[/queue/orders/cancel] Начало отправки уведомления всем ");
-        if (order.getDto() != null) {
-            for (var driverId: order.getDto().getIds()) {
-                messagingTemplate.convertAndSendToUser(driverId,"/queue/orders/cancel", order);
-            }
+        if (order.getDto() != null && order.getDto().getIds().size() > 0) {
+            var sortedList = order.getDto().getIds().stream()
+                    .sorted(Comparator.comparing(OrderRedisWaitingChildDto::getCreatedAt).reversed())
+                    .toList();
+            var dto = sortedList.get(0);
+            messagingTemplate.convertAndSendToUser(dto.getId(), "/queue/orders/cancel", order.getOrder());
         }
         return new ResponseEntity<>(order.getOrder(), HttpStatus.OK);
     }

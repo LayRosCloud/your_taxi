@@ -10,5 +10,5 @@ public class OrderRedisWaitingDto {
     private UUID id;
     private Double longitude;
     private Double latitude;
-    private Set<String> ids;
+    private Set<OrderRedisWaitingChildDto> ids;
 }
