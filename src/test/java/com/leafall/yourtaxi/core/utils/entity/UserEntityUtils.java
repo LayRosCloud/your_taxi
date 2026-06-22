@@ -7,13 +7,13 @@ import static com.leafall.yourtaxi.core.utils.FakerUtils.faker;
 
 public abstract class UserEntityUtils {
 
-    public static UserEntity generateUser(UserRole role) {
+    public static UserEntity generateUser(UserRole role, Boolean isActive) {
         var generated = new UserEntity();
         generated.setFullName(faker.name().fullName());
         generated.setEmail(faker.internet().emailAddress());
         generated.setRole(role);
         generated.setPassword(faker.internet().password());
-        generated.setIsActive(true);
+        generated.setIsActive(isActive);
         return generated;
     }
 }

@@ -62,3 +62,17 @@ logging:
     file: UTF-8
 backend:
   url: ${BACKEND_URL:http://localhost:8080}
+rate-limit:
+  enabled: false
+  login:
+    max-attempts: 5000
+    window-minutes: 1
+    block-duration-minutes: 30
+
+  registration:
+    max-attempts: 5000
+    window-minutes: 1
+
+  api:
+    max-attempts: 1000
+    window-minutes: 1

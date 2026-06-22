@@ -21,6 +21,10 @@ public class RateLimitService {
     private final RateLimitProperties properties;
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
+    public boolean getEnabled() {
+        return properties.getEnabled();
+    }
+
     public boolean tryConsumeLogin(String key) {
         RateLimitProperties.EndpointConfig config = properties.getLogin();
         return tryConsume(key, config.getMaxAttempts(), config.getWindowMinutes());

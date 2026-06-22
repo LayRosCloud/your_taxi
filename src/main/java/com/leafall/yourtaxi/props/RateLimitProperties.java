@@ -11,6 +11,7 @@ public class RateLimitProperties {
     private EndpointConfig login = new EndpointConfig();
     private EndpointConfig registration = new EndpointConfig();
     private EndpointConfig api = new EndpointConfig();
+    private Boolean enabled = false;
 
     @Data
     public static class EndpointConfig {

@@ -23,4 +23,8 @@ public class TokenDbHelper {
     public String generateAccessToken(UUID userId) {
         return tokenService.generateAccessToken(userId);
     }
+
+    public String generateRefreshToken(UUID userId) {
+        return tokenService.generateRefreshToken(userId);
+    }
 }

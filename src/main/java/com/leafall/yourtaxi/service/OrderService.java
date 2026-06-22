@@ -410,6 +410,9 @@ public class OrderService {
         var orderResponseAndOrderWaiting = new OrderResponseAndOrderWaiting();
         orderResponseAndOrderWaiting.setOrder(orderMapper.mapToDto(newOrder));
         orderResponseAndOrderWaiting.setDto(orderFromRedis);
+        for (var driverId: orderFromRedis.getIds()) {
+            orderAssignmentService.removeActiveOffer(order.getId(), UUID.fromString(driverId));
+        }
         return orderResponseAndOrderWaiting;
     }
 

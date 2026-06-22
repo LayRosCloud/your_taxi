@@ -36,7 +36,10 @@ public class RateLimitFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-
+        if (!rateLimitService.getEnabled()) {
+            chain.doFilter(request, response);
+            return;
+        }
         var httpRequest = (HttpServletRequest) request;
         var httpResponse = (HttpServletResponse) response;
 

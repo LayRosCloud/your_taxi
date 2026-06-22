@@ -64,6 +64,7 @@ services:
   osrm:
     host: ${OSRM_HOST}
 rate-limit:
+  enabled: true
   login:
     max-attempts: 5
     window-minutes: 5
