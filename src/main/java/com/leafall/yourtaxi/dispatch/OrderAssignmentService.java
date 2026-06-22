@@ -39,7 +39,7 @@ public class OrderAssignmentService {
     public void createOffer(UUID driverId, UUID orderId) {
         try {
             long now = System.currentTimeMillis();
-            long expiresAt = now + (10 * 1000);
+            long expiresAt = now + (30 * 1000);
             var order = orderRepository.findById(orderId)
                     .orElseThrow(() -> new NotFoundException("order.error.not-found"));
             OfferAssignment offer = new OfferAssignment();
