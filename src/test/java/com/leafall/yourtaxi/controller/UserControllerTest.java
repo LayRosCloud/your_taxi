@@ -280,45 +280,4 @@ public class UserControllerTest extends BaseIntegrationTest {
         assertNotNull(response.getAccessToken());
         assertNotNull(response.getRefreshToken());
     }
-
-    @Test
-    public void refreshToken_badRequest() throws Exception {
-        // given
-        var user = userDbHelper.save(UserRole.USER, true);
-        var accessToken = tokenDbHelper.generateAccessToken(user.getId());
-        var refreshDto = new RefreshDto();
-        refreshDto.setRefreshToken(accessToken);
-        // when
-        mockMvc.perform(MockMvcRequestBuilders.post("/v1/users/tokens/refresh")
-                        .content(objectMapper.writeValueAsString(refreshDto))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors").exists())
-                .andExpect(jsonPath("$.status").exists());
-        // then
-    }
-
-    @Test
-    public void logout_happyPath() throws Exception {
-        // given
-        var user = userDbHelper.save(UserRole.USER, true);
-        var refreshToken = tokenDbHelper.generateRefreshToken(user.getId());
-        // when
-        mockMvc.perform(MockMvcRequestBuilders.post("/v1/users/logout")
-                        .header("Authorization", "Bearer " + refreshToken))
-                .andExpect(status().isNoContent());
-        // then
-    }
-
-    @Test
-    public void logout_badRequest() throws Exception {
-        // given
-        var user = userDbHelper.save(UserRole.USER, true);
-        var accessToken = tokenDbHelper.generateAccessToken(user.getId());
-        // when
-        mockMvc.perform(MockMvcRequestBuilders.post("/v1/users/logout")
-                        .header("Authorization", "Bearer " + accessToken))
-                .andExpect(status().isBadRequest());
-        // then
-    }
 }

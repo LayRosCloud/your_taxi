@@ -2,7 +2,6 @@ package com.leafall.yourtaxi.service;
 
 import com.leafall.yourtaxi.dto.token.TokenHolder;
 import com.leafall.yourtaxi.entity.TokenEntity;
-import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.exception.ForbiddenException;
 import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.repository.TokenRepository;
@@ -78,14 +77,10 @@ public class TokenService {
         return refreshToken;
     }
     public TokenHolder refresh(String token) {
-        try {
-            validateRefreshToken(token);
-        } catch (Exception ignored) {
-            throw new BadRequestException("token.error.not-found");
-        }
         var entity = tokenRepository.findByRefreshToken(token)
-                .orElseThrow(() -> new BadRequestException("token.error.not-found"));
+                .orElseThrow(() -> new NotFoundException("token.error.not-found"));
 
+        validateRefreshToken(entity.getRefreshToken());
         revokeToken(entity.getId());
 
         return TokenHolder.builder()
@@ -95,14 +90,10 @@ public class TokenService {
     }
 
     public void logout(String token) {
-        try {
-            validateRefreshToken(token);
-        } catch (Exception ignored) {
-            throw new BadRequestException("token.error.not-found");
-        }
         var entity = tokenRepository.findByRefreshToken(token)
                 .orElseThrow(() -> new NotFoundException("token.error.not-found"));
 
+        validateRefreshToken(entity.getRefreshToken());
         revokeToken(entity.getId());
     }
 
