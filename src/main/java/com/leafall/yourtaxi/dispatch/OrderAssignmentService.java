@@ -1,13 +1,11 @@
 package com.leafall.yourtaxi.dispatch;
 
 import com.leafall.yourtaxi.dto.OfferAssignment;
-import com.leafall.yourtaxi.dto.order.OrderRedisWaitingChildDto;
 import com.leafall.yourtaxi.dto.order.OrderRedisWaitingDto;
 import com.leafall.yourtaxi.exception.NotFoundException;
 import com.leafall.yourtaxi.repository.OrderRepository;
 import com.leafall.yourtaxi.repository.TripRepository;
 import com.leafall.yourtaxi.repository.UserRepository;
-import com.leafall.yourtaxi.utils.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -87,10 +85,7 @@ public class OrderAssignmentService {
             var newDriverId = findDriverForOrder(order.getLongitude(), order.getLatitude(), MAX_RADIUS_SEARCH, order.getId());
             if (newDriverId != null) {
                 log.info("Водитель {} найден добавляю делаю ему оффер", newDriverId);
-                var orderChild = new OrderRedisWaitingChildDto();
-                orderChild.setId(newDriverId.toString());
-                orderChild.setCreatedAt(TimeUtils.getCurrentTimeFromUTC());
-                order.getIds().add(orderChild);
+                order.getIds().add(newDriverId.toString());
                 redisTemplate.opsForValue().set(String.format("%s%s", ORDERS_KEY, order.getId().toString()), order, 30, TimeUnit.MINUTES);
                 createOffer(newDriverId, orderId);
                 log.info("Водитель успешно добавлен в заказ {}", orderId);
