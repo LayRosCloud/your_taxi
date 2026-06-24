@@ -87,10 +87,12 @@ public class OrderService {
         for (var order: orders) {
             var mappedOrder = orderMapper.mapToDtoDuration(order);
             if (order.getExecutor() == null) {
+                result.add(mappedOrder);
                 continue;
             }
             var distance = geoService.getDriverLocation(order.getExecutor().getUser().getId());
             if (distance.isEmpty()) {
+                result.add(mappedOrder);
                 continue;
             }
             var pointOfUsers = order.getPoints().stream().filter(item -> item.getIndex() == 0).toList();
