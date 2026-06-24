@@ -8,13 +8,18 @@ public final class MaskUtils {
 
         String digits = phone.replaceAll("\\D", "");
 
-        if (digits.length() <= 4) {
+        if (digits.length() < 4) {
             return phone;
         }
 
+        if (digits.startsWith("375") && digits.length() == 12) {
+            String lastTwo = digits.substring(digits.length() - 2);
+            return "+375 (**) ***-**-" + lastTwo;
+        }
+
+        // Универсальный формат для других номеров
         int visibleDigits = 4;
         StringBuilder masked = new StringBuilder();
-
         for (int i = 0; i < digits.length(); i++) {
             if (i < digits.length() - visibleDigits) {
                 masked.append('*');
@@ -23,7 +28,7 @@ public final class MaskUtils {
             }
         }
 
-        return formatMaskedPhone(masked.toString(), phone);
+        return masked.toString();
     }
 
     private static String formatMaskedPhone(String maskedDigits, String original) {

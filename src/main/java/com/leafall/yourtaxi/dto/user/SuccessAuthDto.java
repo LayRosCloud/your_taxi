@@ -16,5 +16,5 @@ public class SuccessAuthDto {
     private TokenHolder tokens;
 
     @NotNull(message = "{validation.not-null}")
-    private UserResponseDto user;
+    private UserDetailResponseDto user;
 }

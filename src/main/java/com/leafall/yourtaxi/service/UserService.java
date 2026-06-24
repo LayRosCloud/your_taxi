@@ -225,7 +225,7 @@ public class UserService {
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)
                         .build())
-                .user(mapper.mapToDto(newUser))
+                .user(mapper.mapToDetailDto(newUser))
                 .build();
     }
 
@@ -242,7 +242,7 @@ public class UserService {
                     .build()
             );
             return SuccessAuthDto.builder()
-                    .user(mapper.mapToDto(user))
+                    .user(mapper.mapToDetailDto(user))
                     .build();
         }
         var accessToken = tokenService.generateAccessToken(user.getId());
@@ -252,7 +252,7 @@ public class UserService {
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)
                         .build())
-                .user(mapper.mapToDto(user))
+                .user(mapper.mapToDetailDto(user))
                 .build();
     }
 }
