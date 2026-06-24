@@ -3,6 +3,7 @@ package com.leafall.yourtaxi.service;
 import com.leafall.yourtaxi.dto.employee.EmployeeCreateDto;
 import com.leafall.yourtaxi.dto.employee.EmployeeUpdateDto;
 import com.leafall.yourtaxi.dto.employee.NewPasswordDto;
+import com.leafall.yourtaxi.dto.user.UserDetailResponseDto;
 import com.leafall.yourtaxi.dto.user.UserResponseDto;
 import com.leafall.yourtaxi.entity.UserInfoEntity;
 import com.leafall.yourtaxi.entity.enums.UserRole;
@@ -48,13 +49,13 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponseDto findById(UUID id) {
+    public UserDetailResponseDto findById(UUID id) {
         var user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("user.error.not-found"));
         if (user.getDeletedAt() != null) {
             throw new NotFoundException("user.error.not-found");
         }
-        return mapper.mapToDto(user);
+        return mapper.mapToDetailDto(user);
     }
 
     @Transactional

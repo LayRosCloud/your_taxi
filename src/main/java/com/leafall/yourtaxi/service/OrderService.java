@@ -113,6 +113,7 @@ public class OrderService {
             }
             var route = distances.getRoutes().get(0);
             mappedOrder.setDurationInSeconds(route.getDuration());
+            result.add(mappedOrder);
         }
 
         return result;

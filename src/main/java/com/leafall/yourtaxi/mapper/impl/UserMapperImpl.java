@@ -8,6 +8,7 @@ import com.leafall.yourtaxi.dto.user.UserResponseDto;
 import com.leafall.yourtaxi.entity.UserEntity;
 import com.leafall.yourtaxi.entity.UserInfoEntity;
 import com.leafall.yourtaxi.mapper.UserMapper;
+import com.leafall.yourtaxi.utils.MaskUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -100,13 +101,11 @@ public class UserMapperImpl implements UserMapper {
         UserInfoResponseDto userInfoResponseDto = new UserInfoResponseDto();
         var phone = userInfoEntity.getPhone();
         if (phone != null && phone.length() > 4) {
-            String masked = phone.substring(0, phone.length() - 4).replaceAll("\\d", "*")
-                    + phone.substring(phone.length() - 4);
+            String masked = MaskUtils.maskPhone(phone);
             userInfoResponseDto.setPhone(masked);
         } else {
             userInfoResponseDto.setPhone(phone);
         }
-        userInfoResponseDto.setPhone( userInfoEntity.getPhone() );
 
         return userInfoResponseDto;
     }

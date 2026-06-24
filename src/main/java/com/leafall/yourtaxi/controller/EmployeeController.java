@@ -2,6 +2,7 @@ package com.leafall.yourtaxi.controller;
 
 import com.leafall.yourtaxi.dto.employee.EmployeeCreateDto;
 import com.leafall.yourtaxi.dto.employee.EmployeeUpdateDto;
+import com.leafall.yourtaxi.dto.user.UserDetailResponseDto;
 import com.leafall.yourtaxi.dto.user.UserResponseDto;
 import com.leafall.yourtaxi.exception.annotation.ApiResponseBadRequest;
 import com.leafall.yourtaxi.exception.annotation.ApiResponseNotFound;
@@ -57,7 +58,7 @@ public class EmployeeController {
     @ApiResponseNotFound
     @ApiResponse(responseCode = "200", description = "Получен сотрудник")
     @PreAuthorize("hasAuthority('DISPATCHER')")
-    public ResponseEntity<UserResponseDto> findById(@PathVariable UUID id) {
+    public ResponseEntity<UserDetailResponseDto> findById(@PathVariable UUID id) {
         log.info("Начало получения сотрудника по id: {}", id);
         var user = service.findById(id);
         log.info("Получен сотрудник {}", user.getFullName());
