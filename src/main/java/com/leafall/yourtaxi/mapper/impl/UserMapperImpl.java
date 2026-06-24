@@ -2,6 +2,7 @@ package com.leafall.yourtaxi.mapper.impl;
 
 import com.leafall.yourtaxi.dto.employee.EmployeeCreateDto;
 import com.leafall.yourtaxi.dto.user.SignUpDto;
+import com.leafall.yourtaxi.dto.user.UserDetailResponseDto;
 import com.leafall.yourtaxi.dto.user.UserInfoResponseDto;
 import com.leafall.yourtaxi.dto.user.UserResponseDto;
 import com.leafall.yourtaxi.entity.UserEntity;
@@ -63,9 +64,51 @@ public class UserMapperImpl implements UserMapper {
         if (entity.getAvatar() != null) {
             userResponseDto.setAvatar(String.format("%s/v1/files/avatars/%s", backendUrl, entity.getAvatar()));
         }
-        userResponseDto.setInfo( userInfoEntityToUserInfoResponseDto( entity.getInfo() ) );
+        userResponseDto.setInfo( userInfoEntityToUserInfoResponseMaskDto( entity.getInfo() ) );
 
         return userResponseDto;
+    }
+
+    @Override
+    public UserDetailResponseDto mapToDetailDto(UserEntity entity) {
+        if ( entity == null ) {
+            return null;
+        }
+
+        UserDetailResponseDto userResponseDto = new UserDetailResponseDto();
+
+        userResponseDto.setId( entity.getId() );
+        userResponseDto.setEmail( entity.getEmail() );
+        userResponseDto.setFullName( entity.getFullName() );
+        if ( entity.getRole() != null ) {
+            userResponseDto.setRole( entity.getRole().name() );
+        }
+        userResponseDto.setIsActive( entity.getIsActive() );
+        userResponseDto.setCreatedAt( entity.getCreatedAt() );
+        if (entity.getAvatar() != null) {
+            userResponseDto.setAvatar(String.format("%s/v1/files/avatars/%s", backendUrl, entity.getAvatar()));
+        }
+        userResponseDto.setInfo( userInfoEntityToUserInfoResponseDto( entity.getInfo() ) );
+        return userResponseDto;
+    }
+
+    protected UserInfoResponseDto userInfoEntityToUserInfoResponseMaskDto(UserInfoEntity userInfoEntity) {
+        if ( userInfoEntity == null ) {
+            return null;
+        }
+
+        UserInfoResponseDto userInfoResponseDto = new UserInfoResponseDto();
+        var phone = userInfoEntity.getPhone();
+        if (phone != null && phone.length() > 4) {
+            String masked = phone.substring(0, phone.length() - 4).replaceAll("\\d", "*")
+                    + phone.substring(phone.length() - 4);
+            userInfoResponseDto.setPhone(masked);
+        } else {
+            userInfoResponseDto.setPhone(phone);
+        }
+        userInfoResponseDto.setPhone( userInfoEntity.getPhone() );
+
+        return userInfoResponseDto;
     }
 
     protected UserInfoResponseDto userInfoEntityToUserInfoResponseDto(UserInfoEntity userInfoEntity) {
@@ -74,7 +117,6 @@ public class UserMapperImpl implements UserMapper {
         }
 
         UserInfoResponseDto userInfoResponseDto = new UserInfoResponseDto();
-
         userInfoResponseDto.setPhone( userInfoEntity.getPhone() );
 
         return userInfoResponseDto;

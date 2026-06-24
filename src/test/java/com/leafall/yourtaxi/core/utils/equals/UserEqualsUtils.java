@@ -1,9 +1,6 @@
 package com.leafall.yourtaxi.core.utils.equals;
 
-import com.leafall.yourtaxi.dto.user.SignInDto;
-import com.leafall.yourtaxi.dto.user.SignUpDto;
-import com.leafall.yourtaxi.dto.user.SuccessAuthDto;
-import com.leafall.yourtaxi.dto.user.UserResponseDto;
+import com.leafall.yourtaxi.dto.user.*;
 import com.leafall.yourtaxi.entity.UserEntity;
 import com.leafall.yourtaxi.entity.enums.UserRole;
 
@@ -33,6 +30,16 @@ public class UserEqualsUtils {
     }
 
     public static void equalsUsers(UserResponseDto response, UserEntity user) {
+        assertNotNull(response);
+        assertEquals(user.getEmail(), response.getEmail());
+        assertEquals(user.getFullName(), response.getFullName());
+        assertEquals(user.getIsActive(),response.getIsActive());
+        assertEquals(user.getAvatar(), response.getAvatar());
+        assertEquals(user.getRole().name(), response.getRole());
+        assertNull(response.getInfo());
+    }
+
+    public static void equalsUsers(UserDetailResponseDto response, UserEntity user) {
         assertNotNull(response);
         assertEquals(user.getEmail(), response.getEmail());
         assertEquals(user.getFullName(), response.getFullName());

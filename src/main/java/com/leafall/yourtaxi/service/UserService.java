@@ -38,10 +38,10 @@ public class UserService {
     private final UserMapper mapper;
     private final FileUploadService fileUploadService;
 
-    public UserResponseDto getCurrentUser() {
-        var user = repository.findById(getCurrentUserId())
+    public UserDetailResponseDto getUser(UUID userId) {
+        var user = repository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("user.error.not-found"));
-        return mapper.mapToDto(user);
+        return mapper.mapToDetailDto(user);
     }
 
     @Transactional
@@ -130,7 +130,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDto update(UserUpdateDto dto) {
+    public UserDetailResponseDto update(UserUpdateDto dto) {
         var user = repository.findById(getCurrentUserId())
                 .orElseThrow(() -> new NotFoundException("user.error.not-found"));
         if (!user.getEmail().equalsIgnoreCase(dto.getEmail())) {
@@ -141,19 +141,17 @@ public class UserService {
         }
         user.setEmail(dto.getEmail().toLowerCase());
         user.setFullName(dto.getFullName());
-        if (user.getRole() == UserRole.EMPLOYEE) {
-            UserInfoEntity info;
-            if (user.getInfo() == null) {
-                info = new UserInfoEntity();
-                info.setUser(user);
-            } else {
-                info = user.getInfo();
-            }
-            info.setPhone(dto.getPhone());
-            userInfoRepository.save(info);
+        UserInfoEntity info;
+        if (user.getInfo() == null) {
+            info = new UserInfoEntity();
+            info.setUser(user);
+        } else {
+            info = user.getInfo();
         }
+        info.setPhone(dto.getPhone());
+        userInfoRepository.save(info);
         var updatedUser = repository.save(user);
-        return mapper.mapToDto(updatedUser);
+        return mapper.mapToDetailDto(updatedUser);
     }
 
     @Transactional

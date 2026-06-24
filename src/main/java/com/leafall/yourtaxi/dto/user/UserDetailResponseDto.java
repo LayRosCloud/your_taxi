@@ -1,0 +1,35 @@
+package com.leafall.yourtaxi.dto.user;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+import java.util.UUID;
+
+@Data
+public class UserDetailResponseDto {
+    @Schema(description = "Id", example = "9f76f9e4-c370-4066-bc21-1fffe0d4adcf")
+    @NotNull(message = "{validation.not-null}")
+    private UUID id;
+
+    @Schema(description = "Почта", example = "example@example.com")
+    @NotNull(message = "{validation.not-null}")
+    private String email;
+
+    @Schema(description = "Как к вам обращаться", example = "Григорий")
+    @NotNull(message = "{validation.not-null}")
+    private String fullName;
+
+    private String avatar;
+    @Schema(description = "Роль", example = "USER")
+    @NotNull(message = "{validation.not-null}")
+    private String role;
+    @Schema(description = "Активирована ли почта", example = "true")
+    @NotNull(message = "{validation.not-null}")
+    private Boolean isActive;
+    @Schema(description = "Дата создания аккаунта UTC", example = "1766091600000")
+    @NotNull(message = "{validation.not-null}")
+    private Long createdAt;
+    @Schema(description = "Доп инфа о юзере")
+    private UserInfoResponseDto info;
+}

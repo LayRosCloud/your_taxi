@@ -65,60 +65,67 @@ public class OrderService {
 
     private static final List<OrderStatus> NOT_FINISHED_STATUSES = List.of(OrderStatus.COMPLETED, OrderStatus.REJECTED);
     @Transactional(readOnly = true)
-    public OrderResponseWithDurationDto findActiveOrder() {
-        var currentUserId = getCurrentUserId();
-        var user = userRepository.findById(currentUserId)
+    public List<OrderResponseWithDurationDto> findActiveOrder(UUID userId) {
+        var user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("user.error.not-found"));
-        OrderEntity order = null;
+        List<OrderEntity> orders = null;
         if (user.getRole() == UserRole.USER) {
-            var orders = orderRepository.findAllByUserAndStatusNotIn(user, NOT_FINISHED_STATUSES);
+            orders = orderRepository.findAllByUserAndStatusNotIn(user, NOT_FINISHED_STATUSES);
             if (orders.size() == 0) {
-                log.info("Заказов не было найдено для пользователя {}", currentUserId);
+                log.info("Заказов не было найдено для пользователя {}", userId);
                 throw new NotFoundException("order.error.not-found");
             }
-            order = orders.get(0);
         } else {
             var trip = validateActualTrip();
-            var orders = orderRepository.findAllByExecutorAndStatusNotIn(trip, NOT_FINISHED_STATUSES);
+            orders = orderRepository.findAllByExecutorAndStatusNotIn(trip, NOT_FINISHED_STATUSES);
             if (orders.size() == 0) {
-                log.info("Заказов не было найдено для исполнителя {}", currentUserId);
+                log.info("Заказов не было найдено для исполнителя {}", userId);
                 throw new NotFoundException("order.error.not-found");
             }
-            order = orders.get(0);
         }
-        var mappedOrder = orderMapper.mapToDtoDuration(order);
-        if (order.getExecutor() != null) {
-
-            var distance = geoService.getDriverLocation(order.getExecutor().getUser().getId());
-            if (distance.isPresent()) {
-                var pointOfUsers = order.getPoints().stream().filter(item -> item.getIndex() == 0).toList();
-                if (pointOfUsers.size() == 0) {
-                    log.info("Неправильно состояние заказа у пользователя {}", currentUserId);
-                    throw new NotFoundException("order.error.not-found");
-                }
-                var pointOfUser = pointOfUsers.get(0);
-                var dto = new PointCreateDto();
-                dto.setLongitude(pointOfUser.getPoint().getCoordinate().x);
-                dto.setLatitude(pointOfUser.getPoint().getCoordinate().y);
-
-                var dto1 = new PointCreateDto();
-                dto1.setLongitude(distance.get().getLongitude());
-                dto1.setLatitude(distance.get().getLatitude());
-                var distances = geoService.getDistance(dto, dto1);
-                if (distances.getRoutes().size() == 0) {
-                    log.error("Пришло 0 роутов! Невозможно посчитать стоимость!");
-                    throw new BadRequestException();
-                }
-                var route = distances.getRoutes().get(0);
-                mappedOrder.setDurationInSeconds(route.getDuration());
+        var result = new ArrayList<OrderResponseWithDurationDto>();
+        for (var order: orders) {
+            var mappedOrder = orderMapper.mapToDtoDuration(order);
+            if (order.getExecutor() == null) {
+                continue;
             }
+            var distance = geoService.getDriverLocation(order.getExecutor().getUser().getId());
+            if (distance.isEmpty()) {
+                continue;
+            }
+            var pointOfUsers = order.getPoints().stream().filter(item -> item.getIndex() == 0).toList();
+            if (pointOfUsers.size() == 0) {
+                log.info("Неправильно состояние заказа у пользователя {}", userId);
+                throw new NotFoundException("order.error.not-found");
+            }
+            var pointOfUser = pointOfUsers.get(0);
+            var dto = new PointCreateDto();
+            dto.setLongitude(pointOfUser.getPoint().getCoordinate().x);
+            dto.setLatitude(pointOfUser.getPoint().getCoordinate().y);
 
+            var dto1 = new PointCreateDto();
+            dto1.setLongitude(distance.get().getLongitude());
+            dto1.setLatitude(distance.get().getLatitude());
+            var distances = geoService.getDistance(dto, dto1);
+            if (distances.getRoutes().size() == 0) {
+                log.error("Пришло 0 роутов! Невозможно посчитать стоимость!");
+                throw new BadRequestException();
+            }
+            var route = distances.getRoutes().get(0);
+            mappedOrder.setDurationInSeconds(route.getDuration());
         }
-        return mappedOrder;
+
+        return result;
     }
 
     @Transactional(readOnly = true)
-    public PaginationResponse<OrderResponseDto> findAll(OrderQueryDto query) {
+    public PaginationResponse<OrderResponseDto> findAll(OrderQueryDto query, UUID userId) {
+        var currentUser = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("user.error.not-found"));
+        if (currentUser.getRole().equals(UserRole.EMPLOYEE)) {
+            query.setExecutorId(currentUser.getId());
+        } else if  (currentUser.getRole().equals(UserRole.USER)) {
+            query.setUserId(currentUser.getId());
+        }
         var specification = OrderSpecification.hasStatus(query.getStatus())
                 .and(OrderSpecification.betweenPrice(query.getPriceFrom(), query.getPriceTo()))
                 .and(OrderSpecification.betweenDate(query.getDateFrom() != null ? Date.valueOf(query.getDateFrom()) : null, query.getDateTo() != null ?  Date.valueOf(query.getDateTo()) : null))
@@ -399,7 +406,7 @@ public class OrderService {
             log.info("Заказчиком заказа {} является пользователь {}, не {}. Он не может отклонить.", id, order.getUser().getId(), currentUserId);
             throw new ForbiddenException("order.error.not-found");
         }
-        if (order.getStatus() != OrderStatus.NEW) {
+        if (order.getStatus().equals(OrderStatus.COMPLETED) || order.getStatus().equals(OrderStatus.REJECTED)) {
             log.info("Заказ {} уже имеет статус {}. Невозможно отклонить", id, order.getStatus());
             throw new ConflictException("order.error.bad-status");
         }

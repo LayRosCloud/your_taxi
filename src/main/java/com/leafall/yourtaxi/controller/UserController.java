@@ -6,18 +6,19 @@ import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.exception.annotation.*;
 import com.leafall.yourtaxi.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jdk.jfr.ContentType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.UUID;
 
 import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
 
@@ -32,10 +33,25 @@ public class UserController {
     @Operation(summary = "Получить информацию о текущем юзере", description = "Получаете информацию из JWT токена")
     @ApiResponseUnauthorized
     @ApiResponse(responseCode = "200", description = "Получена информация о текущем пользователе")
-    public ResponseEntity<UserResponseDto> getCurrentUser() {
-        var user = service.getCurrentUser();
+    public ResponseEntity<UserDetailResponseDto> getCurrentUser() {
+        log.info("Начало запроса на получение текущего юзера {}", getCurrentUserId());
+        var user = service.getUser(getCurrentUserId());
+        log.info("Пришло успешно тело id={} email={}", user.getId(), user.getEmail());
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
+
+    @GetMapping("/v1/users/{id}")
+    @Operation(summary = "Получить информацию о пользователе", description = "Получить информацию о пользователе по id (только диспетчер) Без засекреченных данных")
+    @ApiResponseUnauthorized
+    @ApiResponse(responseCode = "200", description = "Получена информация о текущем пользователе")
+    @PreAuthorize("hasAuthority('DISPATCHER')")
+    public ResponseEntity<UserDetailResponseDto> getUserById(@PathVariable UUID id) {
+        log.info("Начало запроса на получение юзера {}", id);
+        var user = service.getUser(id);
+        log.info("Пришло успешно тело id={} email={}", user.getId(), user.getEmail());
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
     @PostMapping("/v1/users/signin")
     @Operation(
             summary = "Авторизация",
@@ -123,7 +139,7 @@ public class UserController {
     @ApiResponseNotFound
     @ApiResponseUnauthorized
     @ApiResponse(responseCode = "200", description = "Успешное обновление")
-    public ResponseEntity<UserResponseDto> update(@RequestBody @Valid UserUpdateDto dto) {
+    public ResponseEntity<UserDetailResponseDto> update(@RequestBody @Valid UserUpdateDto dto) {
         log.info("Начало изменения пользователя: id={} email=\"{}\", fullname=\"{}\"", getCurrentUserId(), dto.getEmail(), dto.getFullName());
         var user = service.update(dto);
         log.info("Пользователь \"{}\" успешно изменен: id={}", user.getEmail(), user.getId());

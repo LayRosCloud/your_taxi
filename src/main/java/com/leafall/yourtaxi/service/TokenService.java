@@ -86,7 +86,6 @@ public class TokenService {
         var entity = tokenRepository.findByRefreshToken(token)
                 .orElseThrow(() -> new BadRequestException("token.error.not-found"));
 
-        validateRefreshToken(entity.getRefreshToken());
         revokeToken(entity.getId());
 
         return TokenHolder.builder()
@@ -104,7 +103,6 @@ public class TokenService {
         var entity = tokenRepository.findByRefreshToken(token)
                 .orElseThrow(() -> new BadRequestException("token.error.not-found"));
 
-        validateRefreshToken(entity.getRefreshToken());
         revokeToken(entity.getId());
     }
 

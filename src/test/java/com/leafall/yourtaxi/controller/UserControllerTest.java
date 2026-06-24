@@ -256,7 +256,7 @@ public class UserControllerTest extends BaseIntegrationTest {
                 .andReturn();
         // then
         var bytes = mvcResult.getResponse().getContentAsByteArray();
-        var response = objectMapper.readValue(bytes, UserResponseDto.class);
+        var response = objectMapper.readValue(bytes, UserDetailResponseDto.class);
         UserEqualsUtils.equalsUsers(response, user);
     }
 

@@ -1,6 +1,5 @@
 package com.leafall.yourtaxi.controller;
 
-import com.leafall.yourtaxi.dto.generatedFiles.GeneratedFileResponseDto;
 import com.leafall.yourtaxi.dto.order.*;
 import com.leafall.yourtaxi.dto.point.PointCostDto;
 import com.leafall.yourtaxi.exception.annotation.*;
@@ -8,14 +7,12 @@ import com.leafall.yourtaxi.service.OrderService;
 import com.leafall.yourtaxi.utils.pagination.PaginationResponse;
 import com.leafall.yourtaxi.utils.request.OrderQueryDto;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -25,7 +22,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static com.leafall.yourtaxi.utils.SecurityUtils.getCurrentUserId;
@@ -47,8 +44,8 @@ public class OrderController {
     @ApiResponseUnauthorized
     @ApiResponseNotFound
     @ApiResponse(description = "Получить активные заказы аккаунта", responseCode = "200")
-    public ResponseEntity<OrderResponseWithDurationDto> findAllActiveOrders() {
-        var orders = service.findActiveOrder();
+    public ResponseEntity<List<OrderResponseWithDurationDto>> findAllActiveOrders() {
+        var orders = service.findActiveOrder(getCurrentUserId());
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 
@@ -60,10 +57,9 @@ public class OrderController {
     @ApiResponseUnauthorized
     @ApiResponseNotFound
     @ApiResponse(description = "Получить заказы", responseCode = "200")
-    @PreAuthorize("hasAuthority('DISPATCHER')")
     public ResponseEntity<PaginationResponse<OrderResponseDto>> findAll(@ParameterObject OrderQueryDto dto) {
         log.info("Начало поиска по заказам диспетчером {}", dto);
-        var orders = service.findAll(dto);
+        var orders = service.findAll(dto, getCurrentUserId());
         log.info("Данные успешно получены. Максимальное количество {}", orders.cursor().getTotal());
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
@@ -118,7 +114,7 @@ public class OrderController {
     @PatchMapping("/v1/orders/{id}/accept")
     @Operation(
             summary = "Принять заказ от исполнителя",
-            description = "Когда исполнитель видит уведомляшку, он принимает"
+            description = "Когда исполнитель видит уведомление, он принимает"
     )
     @ApiResponseBadRequest
     @ApiResponseUnauthorized
