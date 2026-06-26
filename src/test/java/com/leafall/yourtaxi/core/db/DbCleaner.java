@@ -16,8 +16,10 @@ public class DbCleaner {
     private final CarRepository carRepository;
     private final OrderHistoryRepository orderHistoryRepository;
     private final CodeRepository codeRepository;
+    private final VariableRepository variableRepository;
 
     public void clear() {
+        variableRepository.deleteAll();
         tokenRepository.deleteAll();
         codeRepository.deleteAll();
         userRepository.deleteAll();

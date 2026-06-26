@@ -176,6 +176,8 @@ public class OrderService {
 
         var keys = variableRepository.findAllByKeyIn(list);
         if (keys.size() != list.size()) {
+            System.out.println(keys);
+            log.warn("Найдено {} переменных из {}", keys.size(), list.size());
             throw new NotFoundException("key.error.not-found");
         }
         var map = new HashMap<String, String>();

@@ -3,6 +3,7 @@ package com.leafall.yourtaxi.controller;
 import com.leafall.yourtaxi.BaseIntegrationTest;
 import com.leafall.yourtaxi.core.db.*;
 import com.leafall.yourtaxi.core.utils.dto.PointCreateDtoUtils;
+import com.leafall.yourtaxi.core.utils.entity.VariableEntityUtils;
 import com.leafall.yourtaxi.core.utils.equals.PointEqualsUtils;
 import com.leafall.yourtaxi.dispatch.SearchService;
 import com.leafall.yourtaxi.dto.coordinates.CoordinateSaveDto;
@@ -17,6 +18,7 @@ import com.leafall.yourtaxi.entity.enums.OrderPaymentType;
 import com.leafall.yourtaxi.entity.enums.OrderStatus;
 import com.leafall.yourtaxi.entity.enums.UserRole;
 import com.leafall.yourtaxi.dispatch.GeoService;
+import com.leafall.yourtaxi.entity.enums.VariableType;
 import com.leafall.yourtaxi.service.TripService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,6 +57,8 @@ public class OrderControllerTest extends BaseIntegrationTest {
     private TokenDbHelper tokenDbHelper;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+    @Autowired
+    private VariableDbHelper variableDbHelper;
     @MockitoSpyBean
     private GeoService geoService;
 
@@ -98,6 +102,8 @@ public class OrderControllerTest extends BaseIntegrationTest {
     @Test
     public void testCreateOrder_happyPath() throws Exception {
         // given
+        variableDbHelper.saveDefaultVariables();
+
         // employee №1
         var employeeUser = userDbHelper.save(UserRole.EMPLOYEE);
         var car = carDbHelper.save();
