@@ -149,8 +149,9 @@ public class UserService {
             info = user.getInfo();
         }
         info.setPhone(dto.getPhone());
-        userInfoRepository.save(info);
+        var savedInfo = userInfoRepository.save(info);
         var updatedUser = repository.save(user);
+        updatedUser.setInfo(savedInfo);
         return mapper.mapToDetailDto(updatedUser);
     }
 

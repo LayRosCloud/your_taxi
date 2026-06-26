@@ -2,6 +2,7 @@ package com.leafall.yourtaxi.controller;
 
 import com.leafall.yourtaxi.dto.token.TokenHolder;
 import com.leafall.yourtaxi.dto.user.*;
+import com.leafall.yourtaxi.exception.ApiError;
 import com.leafall.yourtaxi.exception.BadRequestException;
 import com.leafall.yourtaxi.exception.annotation.*;
 import com.leafall.yourtaxi.service.UserService;
@@ -212,13 +213,12 @@ public class UserController {
     )
     @ApiResponseBadRequest
     @ApiResponseNotFound
-    @ApiResponseForbidden
     @ApiResponse(responseCode = "204", description = "Успешный выход")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<Void> logout(@RequestHeader(name = "Authorization") String authToken) {
+    public ResponseEntity<Void> logout(@RequestHeader(name = "Authorization", required = false) String authToken) {
         if (authToken == null || !authToken.startsWith("Bearer ")) {
             log.info("Не был передан токен");
-            throw new BadRequestException("base.error.bad-request");
+            throw new ApiError(401,"base.error.bad-request");
         }
         authToken = authToken.substring(7);
         log.info("Начало выхода из аккаунта");

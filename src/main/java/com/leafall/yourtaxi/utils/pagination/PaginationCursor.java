@@ -4,8 +4,10 @@ package com.leafall.yourtaxi.utils.pagination;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class PaginationCursor {
     @NotNull
     @Schema(description = "Лимит", example = "10")
@@ -17,9 +19,17 @@ public class PaginationCursor {
     @Schema(description = "Количество элементов", example = "100")
     private Long total;
 
+    public PaginationCursor(Integer page, Integer limit, Long total) {
+        this.limit = limit;
+        this.page = page;
+        this.total = total;
+    }
+
     public PaginationCursor(PaginationParams params, Long total) {
         this.limit = params.limit();
         this.page = params.page();
         this.total = total;
     }
+
+
 }

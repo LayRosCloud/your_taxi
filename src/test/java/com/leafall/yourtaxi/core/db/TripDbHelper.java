@@ -21,6 +21,10 @@ public class TripDbHelper {
         return tripRepository.save(entity);
     }
 
+    public TripEntity save(TripEntity trip) {
+        return tripRepository.save(trip);
+    }
+
     public Optional<TripEntity> findById(UUID id) {
         return tripRepository.findById(id);
     }

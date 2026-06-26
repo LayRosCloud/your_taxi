@@ -40,10 +40,8 @@ public class CarService {
         Page<CarEntity> carPage = null;
         if (user.getRole().equals(UserRole.DISPATCHER)) {
             carPage = carRepository.findAll(pageable);
-        } else if (user.getRole().equals(UserRole.EMPLOYEE)) {
-            carPage = carRepository.findAllByUser(user, pageable);
         } else {
-            throw new BadRequestException();
+            carPage = carRepository.findAllByUser(user, pageable);
         }
         var cursor = new PaginationCursor(params, carPage.getTotalElements());
         var dtoList = carPage.getContent().stream().map(carMapper::mapToDto).toList();

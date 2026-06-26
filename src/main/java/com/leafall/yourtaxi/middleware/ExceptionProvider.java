@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -36,6 +37,15 @@ public class ExceptionProvider {
         return new ResponseEntity<>(
                 new ErrorDto(404, List.of("Route is not found")),
                 HttpStatus.NOT_FOUND
+        );
+    }
+
+    @ExceptionHandler({MissingRequestHeaderException.class})
+    public ResponseEntity<ErrorDto> handleException(MissingRequestHeaderException exception, Locale locale) {
+        log.warn(exception.getMessage());
+        return new ResponseEntity<>(
+                new ErrorDto(400, List.of("Bad Request")),
+                HttpStatus.BAD_REQUEST
         );
     }
 

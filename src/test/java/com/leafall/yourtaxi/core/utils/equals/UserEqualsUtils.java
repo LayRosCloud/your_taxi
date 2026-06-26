@@ -49,6 +49,13 @@ public class UserEqualsUtils {
         assertNull(response.getInfo());
     }
 
+    public static void equalsUsers(UserDetailResponseDto response, UserUpdateDto user) {
+        assertEquals(user.getEmail(), response.getEmail());
+        assertEquals(user.getFullName(), response.getFullName());
+        assertNotNull(response.getInfo());
+        assertEquals(user.getPhone(), response.getInfo().getPhone());
+    }
+
     public static void equalsUserSignUpDeletedAccount(SuccessAuthDto response, SignUpDto userDto) {
         assertNotNull(response.getTokens());
         assertNotNull(response.getTokens().getAccessToken());

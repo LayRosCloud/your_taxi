@@ -11,12 +11,13 @@ public final class MaskUtils {
         if (digits.length() < 4) {
             return phone;
         }
-
+        String lastTwo = digits.substring(digits.length() - 2);
         if (digits.startsWith("375") && digits.length() == 12) {
-            String lastTwo = digits.substring(digits.length() - 2);
             return "+375 (**) ***-**-" + lastTwo;
         }
-
+        if (digits.startsWith("7")) {
+            return "+7 (***) ***-**-" + lastTwo;
+        }
         // Универсальный формат для других номеров
         int visibleDigits = 4;
         StringBuilder masked = new StringBuilder();
