@@ -72,7 +72,7 @@ public class OrderController {
     @ApiResponseUnauthorized
     @ApiResponseNotFound
     @ApiResponse(description = "Получил заказ по id", responseCode = "200")
-    public ResponseEntity<OrderResponseDto> findById(@PathVariable UUID id) {
+    public ResponseEntity<OrderFullResponseDto> findById(@PathVariable UUID id) {
         log.info("Начало получения заказа по id={} пользователем {}", id, getCurrentUserId());
         var orders = service.findById(id, getCurrentUserId());
         log.info("Заказ успешно получен {}", id);

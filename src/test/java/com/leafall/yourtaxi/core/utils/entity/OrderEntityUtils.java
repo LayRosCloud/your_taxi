@@ -23,6 +23,7 @@ public class OrderEntityUtils {
         order.setPrice(faker.number().randomDouble(2, 10, 1000));
         order.setPaymentType(OrderPaymentType.CARD);
         order.setIsBigDistance(false);
+        order.setDuration(faker.number().randomDouble(2, 1, 100));
         return order;
     }
 

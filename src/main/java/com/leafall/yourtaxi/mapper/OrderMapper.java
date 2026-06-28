@@ -1,5 +1,6 @@
 package com.leafall.yourtaxi.mapper;
 
+import com.leafall.yourtaxi.dto.order.OrderFullResponseDto;
 import com.leafall.yourtaxi.dto.order.OrderResponseDto;
 import com.leafall.yourtaxi.dto.order.OrderResponseWithDurationDto;
 import com.leafall.yourtaxi.dto.point.PointCostDto;
@@ -13,6 +14,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {PointMapper.class, TripMapper.class, UserMapper.class})
 public interface OrderMapper {
     OrderResponseDto mapToDto(OrderEntity entity);
+    OrderFullResponseDto mapToFullDto(OrderEntity entity);
     @Mapping(target = "durationInSeconds", ignore = true)
     OrderResponseWithDurationDto mapToDtoDuration(OrderEntity entity);
 
@@ -20,6 +22,7 @@ public interface OrderMapper {
         var orderEntity = new OrderEntity();
         orderEntity.setPrice(dto.getPrice());
         orderEntity.setIsBigDistance(dto.getIsBigDistance());
+        orderEntity.setDuration(dto.getDurationInSeconds());
         orderEntity.setPaymentType(paymentType);
         orderEntity.setUser(user);
         orderEntity.setStatus(OrderStatus.NEW);

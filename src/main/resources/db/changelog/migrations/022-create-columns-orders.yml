@@ -1,0 +1,55 @@
+databaseChangeLog:
+  - changeSet:
+      author: betrayal
+      id: 022-create-columns-orders
+      changes:
+        - addColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: accepted_at
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: expected_at
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: processed_at
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: completed_at
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: rejected_at
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: duration
+                  type: DOUBLE
+                  constraints:
+                    nullable: false
+
+      rollback:
+        - dropColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: accepted_at
+              - column:
+                  name: expected_at
+              - column:
+                  name: processed_at
+              - column:
+                  name: completed_at
+              - column:
+                  name: rejected_at
+              - column:
+                  name: duration

@@ -144,11 +144,11 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public OrderResponseDto findById(UUID id, UUID userId) {
+    public OrderFullResponseDto findById(UUID id, UUID userId) {
         var order = orderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("order.error.not-found"));
         var user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("user.error.not-found"));
-        var mappedDto = orderMapper.mapToDto(order);
+        var mappedDto = orderMapper.mapToFullDto(order);
         if (user.getRole().equals(UserRole.DISPATCHER)) {
             return mappedDto;
         }
@@ -270,6 +270,7 @@ public class OrderService {
             throw new ConflictException("order.error.not-valid");
         }
         order.setStatus(OrderStatus.ACCEPT);
+        order.setAcceptedAt(TimeUtils.getCurrentTimeFromUTC());
         order.setExecutor(trip);
         var geo = geoService.getDriverLocation(trip.getUser().getId()).orElse(null);
 
@@ -339,6 +340,7 @@ public class OrderService {
         var currentUser = geoService.getDriverLocation(getCurrentUserId()).orElse(null);
         order.setStatus(OrderStatus.EXPECTATION);
         order.setScheduledStartTime(TimeUtils.getCurrentTimeFromUTC());
+        order.setExpectedAt(TimeUtils.getCurrentTimeFromUTC());
         var newOrder = orderRepository.save(order);
         createOrderHistory(newOrder, "[Действия над заказом] Исполнитель поставил заказ в ожидание", geoService.mapFromDtoToPoint(currentUser));
         return orderMapper.mapToDto(newOrder);
@@ -359,6 +361,7 @@ public class OrderService {
         }
         var currentUser = geoService.getDriverLocation(getCurrentUserId()).orElse(null);
         order.setStatus(OrderStatus.IN_PROCESS);
+        order.setProcessedAt(TimeUtils.getCurrentTimeFromUTC());
         var newOrder = orderRepository.save(order);
         createOrderHistory(newOrder, "[Действия над заказом] Исполнитель начал выполнение заказа", geoService.mapFromDtoToPoint(currentUser));
         return orderMapper.mapToDto(newOrder);
@@ -378,6 +381,7 @@ public class OrderService {
             throw new ConflictException("order.error.not-valid");
         }
         order.setStatus(OrderStatus.COMPLETED);
+        order.setCompletedAt(TimeUtils.getCurrentTimeFromUTC());
         var newOrder = orderRepository.save(order);
         var currentUser = geoService.getDriverLocation(getCurrentUserId()).orElse(null);
         dispatchService.addToQueue(order.getExecutor().getUser().getId());
@@ -416,6 +420,7 @@ public class OrderService {
             throw new ConflictException("order.error.bad-status");
         }
         order.setStatus(OrderStatus.REJECTED);
+        order.setRejectedAt(TimeUtils.getCurrentTimeFromUTC());
         var newOrder = orderRepository.save(order);
         createOrderHistory(newOrder, "[Действия над заказом] Заказчик отменил выполнение заказа", null);
         var orderFromRedis = searchService.getOrderFromRedis(id);

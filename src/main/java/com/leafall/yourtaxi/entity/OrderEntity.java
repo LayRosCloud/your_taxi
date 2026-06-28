@@ -54,8 +54,26 @@ public class OrderEntity implements CreatedAtTimestampAware, UpdatedAtTimestampA
     @Column(name = "updated_at", nullable = false)
     private Long updatedAt;
 
+    @Column(name = "accepted_at")
+    private Long acceptedAt;
+
+    @Column(name = "expected_at")
+    private Long expectedAt;
+
+    @Column(name = "processed_at")
+    private Long processedAt;
+
+    @Column(name = "completed_at")
+    private Long completedAt;
+
+    @Column(name = "rejected_at")
+    private Long rejectedAt;
+
     @Column(name = "is_big_distance", nullable = false)
     private Boolean isBigDistance;
+
+    @Column(name = "duration", nullable = false)
+    private Double duration;
 
     @Column(name = "payment_type", nullable = false, columnDefinition = "orders_payment_type_enum")
     @Enumerated(EnumType.STRING)

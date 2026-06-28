@@ -1,11 +1,11 @@
 package com.leafall.yourtaxi.dto.order;
 
-import com.leafall.yourtaxi.dto.car.CarResponseDto;
 import com.leafall.yourtaxi.dto.point.PointResponseDto;
 import com.leafall.yourtaxi.dto.trip.TripResponseDto;
 import com.leafall.yourtaxi.dto.user.UserResponseDto;
 import com.leafall.yourtaxi.entity.enums.OrderPaymentType;
 import com.leafall.yourtaxi.entity.enums.OrderStatus;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-public class OrderResponseDto {
+public class OrderFullResponseDto {
     @NotNull(message = "{validation.not-null}")
     private UUID id;
     @NotNull(message = "{validation.not-null}")
@@ -35,4 +35,9 @@ public class OrderResponseDto {
     private Long scheduledStartTime;
     @NotNull(message = "{validation.not-null}")
     private List<PointResponseDto> points;
+    private Long acceptedAt;
+    private Long expectedAt;
+    private Long processedAt;
+    private Long completedAt;
+    private Long rejectedAt;
 }
